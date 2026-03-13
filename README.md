@@ -11,9 +11,9 @@
 
 # Overview
 
-DFlagger is an open-source **Detection Engineering Platform** designed to help security teams design, test, and manage detection logic using modern detection engineering methodologies.
+DFlagger is a **Threat Detection Platform** designed to help security teams to manage a detection rules logic using modern detection engineering methodologies.
 
-The platform integrates:
+The Platform Integrates:
 
 • MITRE ATT&CK mapping  
 • Atomic Red Team adversary simulation  
@@ -33,10 +33,10 @@ This platform is intended for:
 
 # Architecture
 
-DFlagger uses a modern **full-stack architecture**.
+DFlagger uses a modern **Full-Stack Architecture**.
 
 ```
-Frontend (React + TypeScript + Vite)
+`Frontend (React + TypeScript + Vite)
         │
         ▼
 Backend API (Node.js + Express)
@@ -45,7 +45,7 @@ Backend API (Node.js + Express)
 Prisma ORM
         │
         ▼
-PostgreSQL Database
+PostgreSQL Database`
 ```
 
 Docker is used to orchestrate all services.
@@ -66,6 +66,7 @@ You can add screenshots of the platform UI here once deployed.
 Example sections:
 
 - Dashboard
+
 - Use Case Builder
 - Sigma Builder
 - YARA Generator
