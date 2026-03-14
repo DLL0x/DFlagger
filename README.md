@@ -1,5 +1,5 @@
 
-# DFlagger – Detection Engineering Platform
+# DFlagger – Threat Detection Platform
 
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Docker](https://img.shields.io/badge/docker-supported-blue)
@@ -15,22 +15,102 @@ DFlagger is a **Threat Detection Platform** designed to help security teams to m
 
 The Platform Integrates:
 
-• MITRE ATT&CK mapping  
-• Atomic Red Team adversary simulation  
-• Sigma rule generation  
-• YARA rule generation  
-• Detection use case management  
-• Detection engineering workflows  
+• MITRE ATT&CK mapping
+• Red Team adversary simulation
+• Sigma rule generation
+• YARA rule generation
+• Detection use case management
+• Detection engineering workflows
 
 This platform is intended for:
 
-- SOC Analysts
 - Detection Engineers
+- Cyber Security Analysts
 - Threat Hunters
 - Security Researchers
 
 ---
 
+# Support Security Platforms and Parsing
+
+- Cortex XDR
+- Fidelis EDR
+- Splunk
+- IBM QRadar
+- LogRhythm
+- ArcSight
+
+---
+
+# Features
+
+Detection Engineering:
+
+- Detection Use Case Builder
+- MITRE ATT&CK mapping
+- Detection lifecycle management
+
+Rule Generation:
+
+- Sigma rule builder
+- YARA rule generator
+
+Detection Validation:
+
+- Query builder
+- Log parser
+
+Living Off The Land:
+
+- LOLGlobs
+- LOLBAS 
+- LOLDrivers 
+- GTFOBins
+
+MITRE ATT&CK Framework:
+
+- Full section includes all of Threats and Techniques Mapping
+
+Cybersecurity Benchmarks:
+
+- NIST
+- ISO 27001
+- CIS
+- SOC 2
+- PCI DSS
+- CSA CCM
+- GDPR
+
+Activities Section:
+
+- Application Audit Log
+
+Settings Features:
+
+- Profile Settings
+- User Management
+- Roles & Permissions
+- Security Policies "Password Policy, Session Management, IP Allowlist"
+- Compliance & Audit Settings
+- Data Management "Data Retention Policies (days), Backup Configuration"
+- SEIM Integrations "**Under Improvement & Enhancement**"
+- API Keys
+- System Settings "System Information, Maintenance & Operations, File Upload Configuration"
+- Appearance
+
+---
+
+# Future Roadmap:
+
+Planned improvements:
+
+- SEIM Integrations
+- Automatic Red Team dataset ingestion
+- MITRE ATT&CK coverage dashboard
+- Detection validation lab
+- Threat hunting analytics
+  
+---
 # Architecture
 
 DFlagger uses a modern **Full-Stack Architecture**.
@@ -66,7 +146,6 @@ You can add screenshots of the platform UI here once deployed.
 Example sections:
 
 - Dashboard
-
 - Use Case Builder
 - Sigma Builder
 - YARA Generator
@@ -76,14 +155,14 @@ Example sections:
 
 # MITRE ATT&CK Integration
 
-DFlagger integrates with the **MITRE ATT&CK Enterprise Matrix** allowing detection engineers to map detections directly to adversary techniques.
+DFlagger contains the **MITRE ATT&CK Enterprise Matrix** allowing detection engineers to map detections directly to adversary techniques.
 
 Example workflow:
 
 ```
 MITRE Technique
       ↓
-Atomic Red Team Simulation
+Red Team Simulation
       ↓
 Detection Query
       ↓
@@ -101,7 +180,7 @@ Threat Intelligence
       ↓
 MITRE Technique Mapping
       ↓
-Atomic Attack Simulation
+Attack Simulation
       ↓
 Detection Rule Creation
       ↓
@@ -120,8 +199,8 @@ Minimum requirements:
 |-------------|--------|
 | Docker | 20+ |
 | Docker Compose | 2+ |
-| RAM | 4GB |
-| Disk | 2GB |
+| RAM | 4~8GB |
+| Disk | 50>GB |
 
 Optional (for development):
 
@@ -326,30 +405,6 @@ DFlagger
 
 ---
 
-# Features
-
-Detection Engineering
-
-- Detection Use Case Builder
-- MITRE ATT&CK mapping
-- Detection lifecycle management
-
-Rule Generation
-
-- Sigma rule builder
-- YARA rule generator
-
-Adversary Simulation
-
-- Atomic Red Team integration
-
-Detection Validation
-
-- Query builder
-- Log parser
-
----
-
 # Contributing
 
 Contributions are welcome.
@@ -367,12 +422,3 @@ Steps:
 MIT License
 
 ---
-
-# Future Roadmap
-
-Planned improvements:
-
-- Automatic Atomic Red Team dataset ingestion
-- MITRE ATT&CK coverage dashboard
-- Detection validation lab
-- Threat hunting analytics
