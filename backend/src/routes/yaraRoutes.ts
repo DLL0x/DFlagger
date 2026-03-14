@@ -216,11 +216,11 @@ router.post("/:id/duplicate", async (req, res) => {
       data: {
         title: `${original.title} (Copy)`,
         description: original.description,
-        rule: original.rule,
+        rule: original.rule as any,
         level: original.level,
         tags: original.tags,
         author: original.author,
-        strings: original.strings,
+        strings: original.strings as any,
         condition: original.condition,
         imports: original.imports,
         version: original.version,

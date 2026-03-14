@@ -264,13 +264,13 @@ router.post("/:id/duplicate", async (req, res) => {
         mitreTechnique: original.mitreTechnique,
         platform: original.platform,
         logsource: original.logsource,
-        detectionLogic: original.detectionLogic,
+        detectionLogic: original.detectionLogic as any,
         falsepositives: original.falsepositives,
         status: "draft",
         priority: original.priority,
         tags: original.tags,
         author: original.author,
-        tests: original.tests
+        tests: original.tests as any
       }
     })
 
