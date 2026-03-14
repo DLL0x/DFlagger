@@ -3,9 +3,9 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Install dependencies
+# Install dependencies (including devDependencies for build)
 COPY package*.json ./
-RUN npm ci --only=production
+RUN npm ci
 
 # Copy prisma schema
 COPY prisma ./prisma/
@@ -18,6 +18,9 @@ COPY . .
 
 # Build TypeScript
 RUN npm run build
+
+# Remove devDependencies after build to reduce image size
+RUN npm prune --production
 
 # Expose port
 EXPOSE 4000
