@@ -1,0 +1,40 @@
+
+version: "3.9"
+
+services:
+
+  postgres:
+    image: postgres:15
+    container_name: dflagger-db
+    restart: always
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: dflagger
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    container_name: dflagger-backend
+    restart: always
+    ports:
+      - "4000:4000"
+    environment:
+      DATABASE_URL: postgresql://admin:admin@postgres:5432/dflagger
+    depends_on:
+      - postgres
+
+  frontend:
+    build: ./frontend/app
+    container_name: dflagger-frontend
+    restart: always
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
