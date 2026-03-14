@@ -306,7 +306,6 @@ Docker will automatically
 5. Start API
 6. Start UI
 ---
----
 
 # Access the Platform
 
