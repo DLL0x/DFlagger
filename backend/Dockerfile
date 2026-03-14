@@ -1,15 +1,30 @@
-
-FROM node:20
+# Backend Dockerfile
+FROM node:20-alpine
 
 WORKDIR /app
 
+# Install dependencies
 COPY package*.json ./
-RUN npm install
+RUN npm ci --only=production
 
-COPY . .
+# Copy prisma schema
+COPY prisma ./prisma/
 
+# Generate Prisma Client
 RUN npx prisma generate
 
+# Copy source code
+COPY . .
+
+# Build TypeScript
+RUN npm run build
+
+# Expose port
 EXPOSE 4000
 
-CMD npx prisma migrate deploy && npm run dev
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:4000/api/health || exit 1
+
+# Start the server
+CMD ["npm", "start"]
