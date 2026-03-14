@@ -346,7 +346,11 @@ ${rule.strings.map(s => {
       setRule(prev => ({
         ...prev,
         ...template.rule,
-        strings: template.rule.strings.map((s, idx) => ({ ...s, id: String(Date.now() + idx) })),
+        strings: template.rule.strings.map((s, idx) => ({ 
+          ...s, 
+          id: String(Date.now() + idx),
+          type: s.type as 'text' | 'hex' | 'regex'
+        })),
         date: new Date().toISOString().split('T')[0]
       }));
       setSelectedTemplate(templateId);

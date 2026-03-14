@@ -20,7 +20,10 @@ import {
   X,
   Loader2,
   ChevronLeft,
-  Database
+  Database,
+  Search,
+  Filter,
+  LogOut
 } from 'lucide-react';
 
 interface ActivityItem {

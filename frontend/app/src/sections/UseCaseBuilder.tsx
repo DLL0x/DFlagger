@@ -3,6 +3,8 @@ import {
   Plus,
   Search,
   Play,
+  Filter,
+  Edit3,
   Trash2,
   Copy,
   CheckCircle,
@@ -3402,8 +3404,6 @@ const handleSave = async () => {
     }, 2000);
   };
 
-  // Export functions for future implementation
-  /*
   const exportToTypeScript = () => {
     const data = {
       useCases,
@@ -3434,7 +3434,6 @@ const handleSave = async () => {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
-  */
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {

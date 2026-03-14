@@ -401,7 +401,11 @@ modified: ${rule.modified}
         id: crypto.randomUUID(),
         date: new Date().toISOString().split('T')[0],
         modified: new Date().toISOString().split('T')[0],
-        detections: template.rule.detections.map((d, idx) => ({ ...d, id: String(Date.now() + idx) }))
+        detections: template.rule.detections.map((d, idx) => ({ 
+          ...d, 
+          id: String(Date.now() + idx),
+          type: d.type as 'field' | 'keywords' | 'list'
+        }))
       });
       setActiveTab('builder');
     }

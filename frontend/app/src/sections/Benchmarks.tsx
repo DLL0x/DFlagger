@@ -13,7 +13,13 @@ import {
   CheckCircle,
   Globe,
   Cloud,
-  Terminal
+  Terminal,
+  Filter,
+  Eye,
+  Network,
+  AlertTriangle,
+  Users,
+  Key
 } from 'lucide-react';
 
 interface SecurityControl {
