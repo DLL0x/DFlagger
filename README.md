@@ -116,7 +116,7 @@ Planned improvements:
 DFlagger uses a modern **Full-Stack Architecture**.
 
 ```
-`Frontend (React + TypeScript + Vite)
+Frontend (React + TypeScript + Vite)
         │
         ▼
 Backend API (Node.js + Express)
@@ -125,7 +125,7 @@ Backend API (Node.js + Express)
 Prisma ORM
         │
         ▼
-PostgreSQL Database`
+PostgreSQL Database
 ```
 
 Docker is used to orchestrate all services.
