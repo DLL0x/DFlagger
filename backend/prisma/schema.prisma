@@ -1,39 +1,174 @@
 generator client {
- provider = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 datasource db {
- provider = "postgresql"
- url      = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
- id        String   @id @default(uuid())
- email     String   @unique
- password  String
- createdAt DateTime @default(now())
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String?
+  role      String   @default("analyst")
+  status    String   @default("active")
+  mfaEnabled Boolean @default(false)
+  lastLogin DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  activities Activity[]
+  
+  @@map("users")
+}
+
+model Role {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  permissions String[]
+  isSystem    Boolean  @default(false)
+  userCount   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("roles")
 }
 
 model SigmaRule {
- id          String   @id @default(uuid())
- title       String
- description String
- rule        Json
- createdAt   DateTime @default(now())
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  rule        Json
+  level       String   @default("medium")
+  status      String   @default("experimental")
+  tags        String[]
+  author      String   @default("Security Analyst")
+  references  String[]
+  logsource   Json?
+  detection   Json?
+  condition   String?
+  fields      String[]
+  falsepositives String[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("sigma_rules")
 }
 
 model YaraRule {
- id          String   @id @default(uuid())
- title       String
- description String
- rule        Json
- createdAt   DateTime @default(now())
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  rule        Json
+  level       String   @default("high")
+  tags        String[]
+  author      String   @default("Security Analyst")
+  strings     Json?
+  condition   String?
+  imports     String[]
+  version     String   @default("1.0")
+  reference   String?
+  hash        String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("yara_rules")
 }
 
 model UseCase {
- id          String   @id @default(uuid())
- title       String
- description String
- mitre       String?
- createdAt   DateTime @default(now())
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  mitre       String?
+  mitreTactic String?
+  mitreTechnique String?
+  platform    String   @default("windows")
+  logsource   String?
+  detectionLogic Json?
+  falsepositives String[]
+  status      String   @default("draft")
+  priority    String   @default("medium")
+  tags        String[]
+  author      String   @default("Security Analyst")
+  tests       Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("use_cases")
+}
+
+model Activity {
+  id          String   @id @default(uuid())
+  type        String   // detection, alert, use_case, user, system, auth, mitre, benchmark, export, settings, query, incident
+  title       String
+  description String
+  user        String
+  userId      String?
+  severity    String?  // low, medium, high, critical, info
+  status      String?  // success, warning, error, pending
+  ipAddress   String?
+  userAgent   String?
+  section     String?
+  metadata    Json?
+  resourceId  String?
+  resourceType String?
+  changes     Json?
+  createdAt   DateTime @default(now())
+  
+  userRelation User?  @relation(fields: [userId], references: [id])
+  
+  @@index([type])
+  @@index([userId])
+  @@index([createdAt])
+  @@index([severity])
+  @@map("activities")
+}
+
+model Alert {
+  id          String   @id @default(uuid())
+  severity    String   // critical, high, medium, low
+  title       String
+  source      String
+  status      String   @default("new") // new, investigating, resolved
+  description String?
+  details     Json?
+  assignedTo  String?
+  resolvedAt  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([status])
+  @@index([severity])
+  @@index([createdAt])
+  @@map("alerts")
+}
+
+model Setting {
+  id          String   @id @default(uuid())
+  category    String   // security, data, system, appearance, integrations
+  key         String   @unique
+  value       Json
+  description String?
+  isEncrypted Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([category])
+  @@map("settings")
+}
+
+// For tracking dashboard analytics/historical data
+model AnalyticsData {
+  id          String   @id @default(uuid())
+  type        String   // threats, severity, detections, section_stats
+  date        DateTime @default(now())
+  data        Json
+  createdAt   DateTime @default(now())
+  
+  @@index([type])
+  @@index([date])
+  @@map("analytics_data")
 }
