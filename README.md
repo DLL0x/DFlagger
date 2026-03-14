@@ -15,12 +15,12 @@ DFlagger is a **Threat Detection Platform** designed to help security teams to m
 
 The Platform Integrates:
 
-• MITRE ATT&CK mapping
-• Red Team adversary simulation
-• Sigma rule generation
-• YARA rule generation
-• Detection use case management
-• Detection engineering workflows
+- MITRE ATT&CK mapping
+- Red Team adversary simulation
+- Sigma rule generation
+- YARA rule generation
+- Detection use case management
+- Detection engineering workflows
 
 This platform is intended for:
 
