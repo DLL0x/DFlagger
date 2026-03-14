@@ -52,34 +52,34 @@ echo "   Using: $DOCKER_COMPOSE"
 echo ""
 
 # Stop any existing containers
-$DOCKER_COMPOSE -f docker-compose.prod.yml down 2>/dev/null || true
+$DOCKER_COMPOSE -f docker-compose.simple.yml down 2>/dev/null || true
 
 # Build and start services
-$DOCKER_COMPOSE -f docker-compose.prod.yml up --build -d
+$DOCKER_COMPOSE -f docker-compose.simple.yml up --build -d
 
 echo ""
-echo "⏳ Waiting for database to be ready..."
+echo "⏳ Waiting for services to start..."
 sleep 15
 
 echo ""
 echo "🗄️  Running database migrations..."
 # Try to run migrations, but don't fail if backend isn't ready yet
-$DOCKER_COMPOSE -f docker-compose.prod.yml exec -T backend npx prisma migrate deploy 2>/dev/null || echo "⚠️  Migration will run automatically when backend starts"
+$DOCKER_COMPOSE -f docker-compose.simple.yml exec -T backend npx prisma migrate deploy 2>/dev/null || echo "⚠️  Migration will run automatically when backend starts"
 
 echo ""
 echo "✅ DFlagger setup complete!"
 echo ""
 echo "📱 Access the application:"
-echo "   Frontend: http://localhost"
+echo "   Frontend:    http://localhost:3000"
 echo "   Backend API: http://localhost:4000"
-echo "   Health Check: http://localhost:4000/api/health"
+echo "   Health:      http://localhost:4000/api/health"
 echo ""
 echo "📊 Useful commands:"
-echo "   View logs:    $DOCKER_COMPOSE -f docker-compose.prod.yml logs -f"
-echo "   Stop:         $DOCKER_COMPOSE -f docker-compose.prod.yml down"
-echo "   Restart:      $DOCKER_COMPOSE -f docker-compose.prod.yml restart"
+echo "   View logs:   $DOCKER_COMPOSE -f docker-compose.simple.yml logs -f"
+echo "   Stop:        $DOCKER_COMPOSE -f docker-compose.simple.yml down"
+echo "   Restart:     $DOCKER_COMPOSE -f docker-compose.simple.yml restart"
 echo ""
 
 # Check if services are running
 echo "🔍 Checking service status..."
-$DOCKER_COMPOSE -f docker-compose.prod.yml ps
+$DOCKER_COMPOSE -f docker-compose.simple.yml ps

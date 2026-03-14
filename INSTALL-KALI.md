@@ -14,11 +14,11 @@ cd ~/DFlagger
 ```bash
 cd ~/DFlagger
 
-# Option A: Use docker compose (v2)
-docker compose -f docker-compose.simple.yml up --build -d
-
-# Option B: Use docker-compose (v1)
+# Use docker compose (v2) or docker-compose (v1)
 docker-compose -f docker-compose.simple.yml up --build -d
+
+# OR
+docker compose -f docker-compose.simple.yml up --build -d
 ```
 
 ## 🔍 Accessing the Application
@@ -27,9 +27,10 @@ After installation:
 
 | Service | URL | Description |
 |---------|-----|-------------|
-| **Frontend** | http://localhost | Main web interface |
+| **Frontend** | http://localhost:3000 | Main web interface |
 | **Backend API** | http://localhost:4000 | API endpoint |
 | **Health Check** | http://localhost:4000/api/health | Backend status |
+| **Database** | localhost:5432 | PostgreSQL (if needed) |
 
 ## 📊 Managing the Application
 
@@ -86,13 +87,12 @@ sudo apt install docker-compose-plugin
 sudo apt install docker-compose
 ```
 
-### Issue: Backend shows "tsc: not found"
+### Issue: Frontend build fails with TypeScript errors
 
-This was fixed in the latest Dockerfile. If you still see this:
 ```bash
-# Rebuild with no cache
+# Clean and rebuild
 docker-compose -f docker-compose.simple.yml down
-docker-compose -f docker-compose.simple.yml build --no-cache backend
+docker-compose -f docker-compose.simple.yml build --no-cache frontend
 docker-compose -f docker-compose.simple.yml up -d
 ```
 
@@ -112,7 +112,10 @@ docker-compose -f docker-compose.simple.yml restart backend
 ### Issue: Port already in use
 
 ```bash
-# Check what's using port 4000
+# Check what's using port 3000 (frontend)
+sudo lsof -i :3000
+
+# Check what's using port 4000 (backend)
 sudo lsof -i :4000
 
 # Kill the process or change ports in docker-compose.simple.yml
@@ -160,7 +163,7 @@ ip addr show | grep "inet " | head -1
 
 2. Access using the IP instead of localhost:
 ```
-http://<your-kali-ip>
+http://<your-kali-ip>:3000
 http://<your-kali-ip>:4000
 ```
 

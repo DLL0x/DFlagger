@@ -3,14 +3,14 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Install dependencies
+# Copy package files first for better caching
 COPY package*.json ./
 RUN npm ci
 
-# Copy source code
+# Copy source code and config files
 COPY . .
 
-# Build the app
+# Build the app (using the main tsconfig.json)
 RUN npm run build
 
 # Production stage with Nginx
