@@ -439,6 +439,8 @@ Steps:
 
 # License
 
-MIT License
+**Saudi Made**
+Copyright © 2026 DFlagger Platform. All rights reserved.
+
 
 ---
