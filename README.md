@@ -306,33 +306,6 @@ Docker will automatically
 5. Start API
 6. Start UI
 ---
-# Access PostgreSQL Inside Docker if required major changes:
-
-First check running containers
-```
-docker ps
-```
-You should see something like
-```
-dflagger-db
-dflagger-backend
-dflagger-frontend
-```
-Enter the PostgreSQL container
-```
-docker exec -it dflagger-db psql -U admin -d dflagger
-```
-Now you are inside PostgreSQL
-```
-dflagger=#
-```
-Useful PostgreSQL Commands
-List tables
-```
-\dt
-```
----
-
 ---
 
 # Access the Platform
@@ -399,7 +372,32 @@ cd frontend/app
 npm install
 npm run dev
 ```
+---
+# Access PostgreSQL Inside Docker if required major changes:
 
+First check running containers
+```
+docker ps
+```
+You should see something like
+```
+dflagger-db
+dflagger-backend
+dflagger-frontend
+```
+Enter the PostgreSQL container
+```
+docker exec -it dflagger-db psql -U admin -d dflagger
+```
+Now you are inside PostgreSQL
+```
+dflagger=#
+```
+Useful PostgreSQL Commands
+List tables
+```
+\dt
+```
 ---
 
 # Project Structure
