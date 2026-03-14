@@ -193,12 +193,11 @@ Use Case Management
 
 # System Requirements
 
-Minimum requirements:
+Requirements:
 
 | Requirement | Version |
 |-------------|--------|
 | Docker | 20+ |
-| Docker Compose | 2+ |
 | RAM | 4~8GB |
 | Disk | 50>GB |
 
@@ -216,8 +215,8 @@ Optional (for development):
 ## Linux
 
 ```
-sudo apt update
-sudo apt install docker.io docker-compose-plugin
+sudo apt update -y
+sudo apt install docker.io docker-compose-plugin -y
 sudo systemctl start docker
 sudo systemctl enable docker
 ```
