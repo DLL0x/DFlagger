@@ -291,16 +291,13 @@ Ensure the IP & port correct in the .env file
 DATABASE_URL=postgresql://admin:admin@127.0.0.1:5432/dflagger
 PORT=4000
 ```
-
----
-
 # Step 4 – Launch Platform
 
 ```
 docker compose up --build
 ```
 
-Docker will automatically:
+Docker will automatically
 
 1. Start PostgreSQL
 2. Build backend container
@@ -308,6 +305,33 @@ Docker will automatically:
 4. Run Prisma migrations
 5. Start API
 6. Start UI
+---
+# Access PostgreSQL Inside Docker if required major changes:
+
+First check running containers
+```
+docker ps
+```
+You should see something like
+```
+dflagger-db
+dflagger-backend
+dflagger-frontend
+```
+Enter the PostgreSQL container
+```
+docker exec -it dflagger-db psql -U admin -d dflagger
+```
+Now you are inside PostgreSQL
+```
+dflagger=#
+```
+Useful PostgreSQL Commands
+List tables
+```
+\dt
+```
+---
 
 ---
 
