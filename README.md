@@ -285,10 +285,10 @@ cd DFlagger
 cp backend/.env.example backend/.env
 ```
 
-Example configuration:
-
+PostgreSQL Example configuration:
+Ensure the IP & port correct in the .env file
 ```
-DATABASE_URL=postgresql://admin:admin@postgres:5432/dflagger
+DATABASE_URL=postgresql://admin:admin@127.0.0.1:5432/dflagger
 PORT=4000
 ```
 
