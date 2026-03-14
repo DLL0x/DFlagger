@@ -2,21 +2,16 @@ import { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   Plus,
   Search,
-  Filter,
   Play,
-  Edit3,
   Trash2,
   Copy,
   CheckCircle,
   AlertTriangle,
   Clock,
   Shield,
-  Zap,
   X,
   Save,
   Server,
-  TrendingUp,
-  Sparkles,
   Code,
   Check,
   Terminal,
@@ -30,7 +25,6 @@ import {
   Download,
   BookOpen,
   ChevronDown,
-  ChevronRight,
   Settings,
   Target,
   Activity,
@@ -2960,7 +2954,7 @@ export default function UseCaseBuilder() {
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [severityFilter, setSeverityFilter] = useState('all');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [statusFilter] = useState('all');
   const [platformFilter, setPlatformFilter] = useState('all');
   const [showWizard, setShowWizard] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
@@ -3336,9 +3330,10 @@ const handleSave = async () => {
 
   } else {
 
+    const { id: _, ...formDataWithoutId } = formData as UseCase;
     const newUseCase: UseCase = {
       id: `UC-${String(useCases.length + 1).padStart(3, '0')}`,
-      ...formData as UseCase,
+      ...formDataWithoutId,
       author: 'Current User',
       createdAt: new Date().toISOString().split('T')[0],
       updatedAt: new Date().toISOString().split('T')[0],
@@ -3407,6 +3402,8 @@ const handleSave = async () => {
     }, 2000);
   };
 
+  // Export functions for future implementation
+  /*
   const exportToTypeScript = () => {
     const data = {
       useCases,
@@ -3414,7 +3411,6 @@ const handleSave = async () => {
       executionResults: atomicExecutionResults,
       exportedAt: new Date().toISOString()
     };
-
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -3427,13 +3423,7 @@ const handleSave = async () => {
   };
 
   const downloadFullTypeScriptFile = () => {
-    // Create a complete TypeScript file content
-    const fullFileContent = `// Complete UseCaseBuilder.tsx with Atomic Red Team Integration
-// Generated: ${new Date().toISOString()}
-// Total Atomic Tests: ${ATOMIC_TESTS.length}
-
-${content}`;
-
+    const fullFileContent = `// Generated: ${new Date().toISOString()}`;
     const blob = new Blob([fullFileContent], { type: 'text/typescript' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -3444,6 +3434,7 @@ ${content}`;
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
+  */
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {

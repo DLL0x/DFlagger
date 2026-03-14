@@ -36,8 +36,8 @@ fi
 
 echo ""
 echo "🔧 Building and starting services..."
-docker-compose -f docker-compose.prod.yml down
-docker-compose -f docker-compose.prod.yml up --build -d
+$DOCKER_COMPOSE -f docker-compose.prod.yml down 2>/dev/null || true
+$DOCKER_COMPOSE -f docker-compose.prod.yml up --build -d
 
 echo ""
 echo "⏳ Waiting for database to be ready..."
@@ -45,7 +45,7 @@ sleep 10
 
 echo ""
 echo "🗄️  Running database migrations..."
-docker-compose -f docker-compose.prod.yml exec -T backend npx prisma migrate deploy
+$DOCKER_COMPOSE -f docker-compose.prod.yml exec -T backend npx prisma migrate deploy || echo "⚠️  Migration may need manual run after first start"
 
 echo ""
 echo "✅ DFlagger is now running!"
@@ -56,7 +56,7 @@ echo "   Backend API: http://localhost:4000"
 echo "   Health Check: http://localhost:4000/api/health"
 echo ""
 echo "📊 View logs:"
-echo "   docker-compose -f docker-compose.prod.yml logs -f"
+echo "   $DOCKER_COMPOSE -f docker-compose.prod.yml logs -f"
 echo ""
 echo "🛑 To stop:"
-echo "   docker-compose -f docker-compose.prod.yml down"
+echo "   $DOCKER_COMPOSE -f docker-compose.prod.yml down"

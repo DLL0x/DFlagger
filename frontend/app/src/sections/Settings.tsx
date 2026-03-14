@@ -20,18 +20,13 @@ import {
   Trash2,
   Edit2,
   X,
-  ChevronDown,
-  ChevronRight,
   RefreshCw,
   Eye,
-  EyeOff,
   ShieldAlert,
   Archive,
   Settings as SettingsIcon,
   Activity,
-  LogOut,
-  Laptop,
-  Smartphone
+  LogOut
 } from 'lucide-react';
 
 interface User {
@@ -241,10 +236,6 @@ export default function SettingsPanel() {
   const getRolePermissions = (roleId: string) => {
     const role = roles.find(r => r.id === roleId);
     return role?.permissions || [];
-  };
-
-  const hasPermission = (user: User, permission: string) => {
-    return getRolePermissions(user.role).includes(permission);
   };
 
   // Render different sections

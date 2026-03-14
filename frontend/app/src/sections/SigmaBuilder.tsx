@@ -8,19 +8,16 @@ import {
   Plus,
   X,
   Trash2,
-  BookOpen,
   ChevronDown,
   ChevronUp,
   Code2,
   Target,
   AlertCircle,
   CheckCircle2,
-  Info,
   Save,
   Server,
   FileText,
-  LayoutTemplate,
-  AlertTriangle
+  LayoutTemplate
 } from 'lucide-react';
 
 // Official Sigma Types
@@ -404,7 +401,7 @@ modified: ${rule.modified}
         id: crypto.randomUUID(),
         date: new Date().toISOString().split('T')[0],
         modified: new Date().toISOString().split('T')[0],
-        detections: template.rule.detections.map((d, idx) => ({ ...d, id: Date.now() + idx }))
+        detections: template.rule.detections.map((d, idx) => ({ ...d, id: String(Date.now() + idx) }))
       });
       setActiveTab('builder');
     }

@@ -2,24 +2,18 @@ import { useState } from 'react';
 import {
   Shield,
   Search,
-  Filter,
   ExternalLink,
   ChevronRight,
   Info,
   FileText,
   Lock,
-  Eye,
   Server,
   Database,
-  Network,
   Clipboard,
   CheckCircle,
-  AlertTriangle,
   Globe,
   Cloud,
-  Terminal,
-  Users,
-  Key
+  Terminal
 } from 'lucide-react';
 
 interface SecurityControl {

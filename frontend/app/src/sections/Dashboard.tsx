@@ -11,26 +11,18 @@ import {
   MoreVertical,
   LayoutDashboard,
   FileText,
-  Search,
   Code,
-  Terminal,
   Target,
   BarChart3,
   History,
   X,
-  GripVertical,
   Eye,
   EyeOff,
-  Menu,
   ChevronRight,
-  Cpu,
   Globe,
-  Lock,
   FileSearch,
   FileCode,
-  Zap,
   Clock,
-  CheckCircle,
   AlertOctagon
 } from 'lucide-react';
 import {
@@ -67,7 +59,6 @@ export type Section = 'dashboard' | 'usecases' | 'lolglobs' | 'logparser' | 'que
 interface DashboardProps {
   user: { username: string; email: string };
   setSection?: (section: Section) => void;
-  currentSection?: Section;
 }
 
 interface Alert {
@@ -127,7 +118,7 @@ const NAV_ITEMS = [
   { id: 'activities' as Section, label: 'Activities', icon: Activity, color: 'text-teal-400', description: 'Audit & logs' },
 ];
 
-export default function Dashboard({ user, setSection, currentSection }: DashboardProps) {
+export default function Dashboard({ user, setSection }: DashboardProps) {
   // State
   const [currentTime, setCurrentTime] = useState(new Date());
   const [customizeMode, setCustomizeMode] = useState(false);

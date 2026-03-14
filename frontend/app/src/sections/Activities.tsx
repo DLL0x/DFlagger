@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   Activity,
-  Search,
   User,
   FileSearch,
   Shield,
@@ -11,13 +10,11 @@ import {
   RefreshCw,
   ChevronRight,
   Calendar,
-  Filter,
   Eye,
   Server,
   Terminal,
   Settings,
   LogIn,
-  LogOut,
   FileDown,
   AlertOctagon,
   X,
@@ -204,7 +201,7 @@ export default function Activities() {
     fetchActivities(1, false);
     
     // Set up polling every 30 seconds if auto-refresh is enabled
-    let interval: NodeJS.Timeout;
+    let interval: ReturnType<typeof setInterval>;
     if (autoRefresh) {
       interval = setInterval(() => {
         fetchActivities(1, false);

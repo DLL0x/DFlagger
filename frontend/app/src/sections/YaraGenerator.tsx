@@ -5,11 +5,9 @@ import {
   Copy, 
   Check, 
   Download, 
-  Upload, 
   Plus, 
   X, 
   Trash2, 
-  Edit3, 
   FileText,
   Binary,
   Hash,
@@ -18,12 +16,8 @@ import {
   CheckCircle2,
   Info,
   Save,
-  FolderOpen,
   ChevronDown,
   ChevronUp,
-  Search,
-  Filter,
-  RefreshCw,
   BookOpen,
   Code2
 } from 'lucide-react';
@@ -352,7 +346,7 @@ ${rule.strings.map(s => {
       setRule(prev => ({
         ...prev,
         ...template.rule,
-        strings: template.rule.strings.map((s, idx) => ({ ...s, id: Date.now() + idx })),
+        strings: template.rule.strings.map((s, idx) => ({ ...s, id: String(Date.now() + idx) })),
         date: new Date().toISOString().split('T')[0]
       }));
       setSelectedTemplate(templateId);
@@ -360,6 +354,8 @@ ${rule.strings.map(s => {
     }
   };
 
+  // Condition generator for future use
+  /*
   const generateCondition = (type: string) => {
     switch(type) {
       case 'any': return 'any of them';
@@ -369,6 +365,7 @@ ${rule.strings.map(s => {
       default: return rule.condition;
     }
   };
+  */
 
   return (
     <div className="p-6 space-y-6 max-w-7xl mx-auto">
@@ -641,7 +638,7 @@ ${rule.strings.map(s => {
               
               {expandedSections.strings && (
                 <div className="p-4 space-y-4">
-                  {rule.strings.map((str, idx) => (
+                  {rule.strings.map((str) => (
                     <div key={str.id} className="bg-black/30 border border-white/5 rounded-lg p-4 space-y-3">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2 flex-1">
