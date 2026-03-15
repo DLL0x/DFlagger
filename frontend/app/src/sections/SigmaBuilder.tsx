@@ -404,7 +404,8 @@ modified: ${rule.modified}
         detections: template.rule.detections.map((d, idx) => ({ 
           ...d, 
           id: String(Date.now() + idx),
-          type: d.type as 'field' | 'keywords' | 'list'
+          type: d.type as 'field' | 'keywords' | 'list',
+          modifier: d.modifier as SigmaModifier
         }))
       });
       setActiveTab('builder');
