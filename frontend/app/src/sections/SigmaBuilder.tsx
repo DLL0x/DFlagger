@@ -401,6 +401,8 @@ modified: ${rule.modified}
         id: crypto.randomUUID(),
         date: new Date().toISOString().split('T')[0],
         modified: new Date().toISOString().split('T')[0],
+        author: template.rule.author || 'Security Analyst',
+        references: template.rule.references || [],
         detections: template.rule.detections.map((d, idx) => ({ 
           ...d, 
           id: String(Date.now() + idx),
