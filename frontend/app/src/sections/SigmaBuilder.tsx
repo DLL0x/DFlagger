@@ -157,7 +157,7 @@ const CONDITION_PRESETS = [
   { value: 'selection | count() > 5', label: 'count() > 5', desc: 'Aggregation count' },
 ];
 
-const SIGMA_TEMPLATES = [
+const SIGMA_TEMPLATES: { id: string; name: string; rule: SigmaRule }[] = [
   {
     id: 'powershell-encoding',
     name: 'PowerShell Encoded Commands',
@@ -165,6 +165,9 @@ const SIGMA_TEMPLATES = [
       title: 'PowerShell Encoded Command',
       status: 'experimental',
       description: 'Detects encoded PowerShell commands',
+      author: 'Security Analyst',
+      date: new Date().toISOString().split('T')[0],
+      modified: new Date().toISOString().split('T')[0],
       logsource: { product: 'windows', service: 'sysmon', category: 'process_creation' },
       detections: [
         { id: '1', name: 'selection', type: 'field', field: 'CommandLine', modifier: 'contains', value: ['-enc', '-encodedcommand'], negation: false },
@@ -173,7 +176,8 @@ const SIGMA_TEMPLATES = [
       condition: 'selection and not filter',
       falsepositives: ['Administrative scripts'],
       level: 'high',
-      tags: ['attack.execution', 'attack.t1059.001']
+      tags: ['attack.execution', 'attack.t1059.001'],
+      references: []
     }
   },
   {
@@ -183,6 +187,9 @@ const SIGMA_TEMPLATES = [
       title: 'Suspicious Network Connection',
       status: 'experimental',
       description: 'Detects connections to C2 domains',
+      author: 'Security Analyst',
+      date: new Date().toISOString().split('T')[0],
+      modified: new Date().toISOString().split('T')[0],
       logsource: { category: 'network_connection' },
       detections: [
         { id: '1', name: 'selection', type: 'field', field: 'DestinationHostname', modifier: 'contains', value: ['evil.com'], negation: false }
@@ -190,7 +197,8 @@ const SIGMA_TEMPLATES = [
       condition: 'selection',
       falsepositives: [],
       level: 'critical',
-      tags: ['attack.command_and_control']
+      tags: ['attack.command_and_control'],
+      references: []
     }
   }
 ];
@@ -401,13 +409,9 @@ modified: ${rule.modified}
         id: crypto.randomUUID(),
         date: new Date().toISOString().split('T')[0],
         modified: new Date().toISOString().split('T')[0],
-        author: template.rule.author || 'Security Analyst',
-        references: template.rule.references || [],
         detections: template.rule.detections.map((d, idx) => ({ 
           ...d, 
-          id: String(Date.now() + idx),
-          type: d.type as 'field' | 'keywords' | 'list',
-          modifier: d.modifier as SigmaModifier
+          id: String(Date.now() + idx)
         }))
       });
       setActiveTab('builder');
