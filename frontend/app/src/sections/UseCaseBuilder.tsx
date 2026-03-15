@@ -2977,24 +2977,75 @@ export default function UseCaseBuilder() {
   });
 
   // ==========================================
-  // BACKEND API HELPER
+  // BACKEND API HELPERS
   // ==========================================
-  const saveUseCaseToBackend = async (useCase: UseCase) => {
-
+  
+  // Fetch use cases from backend
+  const fetchUseCases = async () => {
     try {
-
+      const response = await fetch("http://localhost:4000/api/usecases");
+      const data = await response.json();
+      
+      // Transform backend data to frontend format
+      const transformedCases = data.cases.map((uc: any) => ({
+        id: uc.id,
+        name: uc.title,
+        description: uc.description,
+        category: uc.mitreTactic || 'Uncategorized',
+        severity: uc.priority === 'high' ? 'high' : uc.priority === 'critical' ? 'critical' : 'medium',
+        status: uc.status === 'active' ? 'active' : 'draft',
+        platform: (uc.platform || 'splunk').toLowerCase(),
+        dataSource: uc.logsource || 'Windows Security',
+        query: uc.detectionLogic ? JSON.stringify(uc.detectionLogic) : '',
+        queries: uc.detectionLogic || {},
+        createdAt: uc.createdAt ? new Date(uc.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        updatedAt: uc.updatedAt ? new Date(uc.updatedAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        author: uc.author || 'Security Analyst',
+        tags: uc.tags || [],
+        mitreTechniques: uc.mitre ? [uc.mitre] : [],
+        mitreTactics: uc.mitreTactic ? [uc.mitreTactic] : [],
+        falsePositiveRate: 0,
+        triggerCount: 0,
+        lastTriggered: 'Never'
+      }));
+      
+      setUseCases(transformedCases);
+    } catch (error) {
+      console.error("Failed to fetch use cases:", error);
+      // Fallback to empty array on error
+      setUseCases([]);
+    }
+  };
+  
+  const saveUseCaseToBackend = async (useCase: UseCase) => {
+    try {
+      // Transform frontend data to backend format
+      const backendPayload = {
+        title: useCase.name,
+        description: useCase.description,
+        mitre: useCase.mitreTechniques?.[0] || '',
+        mitreTactic: useCase.mitreTactics?.[0] || useCase.category,
+        platform: useCase.platform,
+        logsource: useCase.dataSource,
+        detectionLogic: useCase.queries || {},
+        status: useCase.status,
+        priority: useCase.severity,
+        tags: useCase.tags || [],
+        author: useCase.author || 'Security Analyst'
+      };
+      
       await fetch("http://localhost:4000/api/usecases", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify(useCase)
+        body: JSON.stringify(backendPayload)
       });
-
+      
+      // Refresh the list after saving
+      await fetchUseCases();
     } catch (error) {
-
       console.error("Failed to store use case:", error);
-
     }
 
   };
@@ -3021,54 +3072,9 @@ export default function UseCaseBuilder() {
   const statuses = ['all', 'active', 'inactive', 'draft'];
   const platforms = ['all', 'splunk', 'qradar', 'logrhythm', 'arcsight', 'cortex', 'fidelis'];
 
-  // Initialize with sample data
+  // Initialize by fetching from backend
   useEffect(() => {
-    const sampleData: UseCase[] = [
-      {
-        id: 'UC-001',
-        name: 'HTML Smuggling - Blob Construction',
-        description: 'Detects HTML files using blob construction for payload delivery (Red Team Technique)',
-        category: 'Initial Access',
-        severity: 'high',
-        status: 'active',
-        platform: 'splunk',
-        dataSource: 'Proxy Logs',
-        query: RED_TEAM_TEMPLATES[0].platforms.splunk,
-        queries: RED_TEAM_TEMPLATES[0].platforms,
-        createdAt: '2024-01-15',
-        updatedAt: '2024-03-10',
-        author: 'Red Team Detection Lab',
-        tags: ['red-team', 'html-smuggling', 'initial-access', 'apt'],
-        mitreTechniques: ['T1027', 'T1059.007', 'T1204.001'],
-        mitreTactics: ['Initial Access', 'Defense Evasion'],
-        falsePositiveRate: 2.1,
-        triggerCount: 147,
-        lastTriggered: '5 min ago',
-        references: ['https://kypvas.github.io/red-team-map/', 'https://lolbas-project.github.io/']
-      },
-      {
-        id: 'UC-002',
-        name: 'DCOM Lateral Movement - MMC20.Application',
-        description: 'Detects abuse of DCOM MMC20.Application for remote code execution',
-        category: 'Lateral Movement',
-        severity: 'critical',
-        status: 'active',
-        platform: 'splunk',
-        dataSource: 'Windows Security',
-        query: RED_TEAM_TEMPLATES[1].platforms.splunk,
-        queries: RED_TEAM_TEMPLATES[1].platforms,
-        createdAt: '2024-02-01',
-        updatedAt: '2024-03-08',
-        author: 'Threat Hunter',
-        tags: ['dcom', 'lateral-movement', 'mmc20', 'red-team'],
-        mitreTechniques: ['T1021.003'],
-        mitreTactics: ['Lateral Movement'],
-        falsePositiveRate: 0.5,
-        triggerCount: 23,
-        lastTriggered: '12 min ago'
-      }
-    ];
-    setUseCases(sampleData);
+    fetchUseCases();
   }, []);
 
   // Filter logic
@@ -3302,65 +3308,52 @@ GROUP BY sourceip, username, Image`;
 const handleSave = async () => {
   if (!formData.name || !formData.query) return;
 
+  const payload = {
+    title: formData.name,
+    description: formData.description,
+    mitre: formData.mitreTechniques?.[0] || '',
+    mitreTactic: formData.mitreTactics?.[0] || formData.category,
+    mitreTechnique: formData.mitreTechniques?.[0] || '',
+    platform: formData.platform || 'windows',
+    logsource: formData.dataSource,
+    detectionLogic: formData.queries || {},
+    falsepositives: [],
+    status: formData.status || 'draft',
+    priority: formData.severity || 'medium',
+    tags: formData.tags || [],
+    author: formData.author || 'Security Analyst'
+  };
+
   if (editingUseCase) {
-
-    const updatedUseCase: UseCase = {
-      ...editingUseCase,
-      ...formData as UseCase,
-      updatedAt: new Date().toISOString().split('T')[0]
-    };
-
-    setUseCases(useCases.map(uc =>
-      uc.id === editingUseCase.id ? updatedUseCase : uc
-    ));
-
+    // Update existing use case
     try {
-      await fetch("http://localhost:4000/api/usecases", {
-        method: "POST",
+      await fetch(`http://localhost:4000/api/usecases/${editingUseCase.id}`, {
+        method: "PUT",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({
-          title: updatedUseCase.name,
-          description: updatedUseCase.description,
-          mitre: updatedUseCase.mitreTechniques?.join(", ") || ""
-        })
+        body: JSON.stringify(payload)
       });
+      // Refresh from backend
+      await fetchUseCases();
     } catch (err) {
       console.error("Failed to update use case in backend", err);
     }
-
   } else {
-
-    const { id: _, ...formDataWithoutId } = formData as UseCase;
-    const newUseCase: UseCase = {
-      id: `UC-${String(useCases.length + 1).padStart(3, '0')}`,
-      ...formDataWithoutId,
-      author: 'Current User',
-      createdAt: new Date().toISOString().split('T')[0],
-      updatedAt: new Date().toISOString().split('T')[0],
-      triggerCount: 0,
-      falsePositiveRate: 0
-    };
-
-    setUseCases([...useCases, newUseCase]);
-
+    // Create new use case
     try {
       await fetch("http://localhost:4000/api/usecases", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({
-          title: newUseCase.name,
-          description: newUseCase.description,
-          mitre: newUseCase.mitreTechniques?.join(", ") || ""
-        })
+        body: JSON.stringify(payload)
       });
+      // Refresh from backend
+      await fetchUseCases();
     } catch (err) {
       console.error("Failed to save use case to backend", err);
     }
-
   }
 
   setShowWizard(false);
@@ -3374,9 +3367,17 @@ const handleSave = async () => {
     setShowWizard(true);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (confirm('Are you sure you want to delete this use case?')) {
-      setUseCases(useCases.filter(uc => uc.id !== id));
+      try {
+        await fetch(`http://localhost:4000/api/usecases/${id}`, {
+          method: "DELETE"
+        });
+        // Refresh from backend
+        await fetchUseCases();
+      } catch (err) {
+        console.error("Failed to delete use case", err);
+      }
     }
   };
 
