@@ -162,6 +162,7 @@ const SIGMA_TEMPLATES: { id: string; name: string; rule: SigmaRule }[] = [
     id: 'powershell-encoding',
     name: 'PowerShell Encoded Commands',
     rule: {
+      id: 'template-powershell',
       title: 'PowerShell Encoded Command',
       status: 'experimental',
       description: 'Detects encoded PowerShell commands',
@@ -184,6 +185,7 @@ const SIGMA_TEMPLATES: { id: string; name: string; rule: SigmaRule }[] = [
     id: 'network-c2',
     name: 'Network Connection to C2',
     rule: {
+      id: 'template-network',
       title: 'Suspicious Network Connection',
       status: 'experimental',
       description: 'Detects connections to C2 domains',
