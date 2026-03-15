@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { 
   Shield, 
   Play, 
@@ -19,7 +19,9 @@ import {
   ChevronDown,
   ChevronUp,
   BookOpen,
-  Code2
+  Code2,
+  Search,
+  FolderOpen
 } from 'lucide-react';
 
 interface YaraString {
@@ -153,7 +155,7 @@ export default function YaraGenerator() {
   const [generated, setGenerated] = useState('');
   const [copied, setCopied] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [activeTab, setActiveTab] = useState<'builder' | 'preview' | 'templates'>('builder');
+  const [activeTab, setActiveTab] = useState<'builder' | 'preview' | 'templates' | 'saved'>('builder');
   const [expandedSections, setExpandedSections] = useState({
     metadata: true,
     imports: false,
@@ -162,10 +164,61 @@ export default function YaraGenerator() {
   });
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  
+  // Saved rules from backend
+  const [savedRules, setSavedRules] = useState<Array<{id: string; title: string; description: string; level: string; createdAt: string}>>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const toggleSection = (section: keyof typeof expandedSections) => {
     setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
   };
+
+  // Fetch saved rules from backend
+  const fetchSavedRules = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('http://localhost:4000/api/yara');
+      const data = await response.json();
+      setSavedRules(data.rules || []);
+    } catch (err) {
+      console.error('Failed to fetch saved rules:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Load a saved rule
+  const loadSavedRule = async (ruleId: string) => {
+    try {
+      const response = await fetch(`http://localhost:4000/api/yara/${ruleId}`);
+      const data = await response.json();
+      if (data && data.rule) {
+        // Parse the rule and populate the form
+        setRule(data.rule as YaraRule);
+        setActiveTab('builder');
+      }
+    } catch (err) {
+      console.error('Failed to load rule:', err);
+      alert('Failed to load rule');
+    }
+  };
+
+  // Delete a saved rule
+  const deleteSavedRule = async (ruleId: string) => {
+    if (!confirm('Are you sure you want to delete this rule?')) return;
+    try {
+      await fetch(`http://localhost:4000/api/yara/${ruleId}`, { method: 'DELETE' });
+      await fetchSavedRules();
+    } catch (err) {
+      console.error('Failed to delete rule:', err);
+    }
+  };
+
+  // Fetch saved rules on mount
+  useEffect(() => {
+    fetchSavedRules();
+  }, []);
 
   const generateYara = useCallback(() => {
     const errors: string[] = [];
@@ -279,6 +332,8 @@ ${rule.strings.map(s => {
       });
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
+      // Refresh saved rules list
+      await fetchSavedRules();
     } catch (err) {
       console.error("Failed to save YARA rule", err);
     }
@@ -416,7 +471,7 @@ ${rule.strings.map(s => {
 
       {/* Tabs */}
       <div className="flex gap-2 border-b border-white/10">
-        {['builder', 'preview', 'templates'].map((tab) => (
+        {['builder', 'preview', 'templates', 'saved'].map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab as any)}
@@ -426,7 +481,7 @@ ${rule.strings.map(s => {
                 : 'border-transparent text-gray-400 hover:text-gray-200'
             }`}
           >
-            {tab}
+            {tab === 'saved' ? `Saved (${savedRules.length})` : tab}
           </button>
         ))}
       </div>
@@ -466,6 +521,95 @@ ${rule.strings.map(s => {
               Create empty rule
             </button>
           </div>
+        </div>
+      ) : activeTab === 'saved' ? (
+        <div className="space-y-4">
+          {/* Search Bar */}
+          <div className="flex gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search saved rules..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 bg-slate-900/60 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:border-cyan-400 focus:outline-none"
+              />
+            </div>
+            <button
+              onClick={fetchSavedRules}
+              className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors flex items-center gap-2"
+            >
+              <FolderOpen className="w-5 h-5" />
+              Refresh
+            </button>
+          </div>
+
+          {/* Saved Rules List */}
+          {isLoading ? (
+            <div className="text-center py-12">
+              <div className="animate-spin w-8 h-8 border-2 border-cyan-400 border-t-transparent rounded-full mx-auto mb-4" />
+              <p className="text-gray-400">Loading saved rules...</p>
+            </div>
+          ) : savedRules.length === 0 ? (
+            <div className="text-center py-12 bg-slate-900/30 border border-white/10 rounded-xl">
+              <Shield className="w-12 h-12 text-gray-600 mx-auto mb-4" />
+              <p className="text-gray-400">No saved rules yet</p>
+              <p className="text-sm text-gray-500 mt-1">Create and save rules to see them here</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {savedRules
+                .filter(r => 
+                  r.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                  r.description?.toLowerCase().includes(searchQuery.toLowerCase())
+                )
+                .map((savedRule) => (
+                <div 
+                  key={savedRule.id}
+                  className="p-5 bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-xl transition-all hover:border-cyan-400/30"
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-cyan-500/10">
+                        <Binary className="w-5 h-5 text-cyan-400" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-white">{savedRule.title}</h3>
+                        <p className="text-xs text-gray-500">
+                          {new Date(savedRule.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                    <span className={`px-2 py-1 rounded text-xs ${
+                      savedRule.level === 'critical' ? 'bg-red-500/10 text-red-400' :
+                      savedRule.level === 'high' ? 'bg-orange-500/10 text-orange-400' :
+                      savedRule.level === 'medium' ? 'bg-yellow-500/10 text-yellow-400' :
+                      'bg-blue-500/10 text-blue-400'
+                    }`}>
+                      {savedRule.level}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-400 mb-4 line-clamp-2">{savedRule.description}</p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => loadSavedRule(savedRule.id)}
+                      className="flex-1 px-3 py-2 bg-cyan-500/10 text-cyan-400 rounded-lg text-sm hover:bg-cyan-500/20 transition-colors flex items-center justify-center gap-2"
+                    >
+                      <FolderOpen className="w-4 h-4" />
+                      Load
+                    </button>
+                    <button
+                      onClick={() => deleteSavedRule(savedRule.id)}
+                      className="px-3 py-2 bg-red-500/10 text-red-400 rounded-lg text-sm hover:bg-red-500/20 transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       ) : activeTab === 'builder' ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
