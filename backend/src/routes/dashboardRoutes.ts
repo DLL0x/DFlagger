@@ -36,7 +36,7 @@ router.get("/stats", async (req, res) => {
           title: true,
           description: true,
           user: true,
-          timestamp: true,
+          createdAt: true,
           section: true
         }
       })

@@ -433,11 +433,11 @@ router.put("/admin/settings/:section", async (req, res) => {
       Object.entries(data).map(([key, value]) =>
         prisma.setting.upsert({
           where: { key: `${section}.${key}` },
-          update: { value: typeof value === "object" ? value : { value } },
+          update: { value: typeof value === "object" && value !== null ? value : { value } },
           create: {
             category: section,
             key: `${section}.${key}`,
-            value: typeof value === "object" ? value : { value },
+            value: typeof value === "object" && value !== null ? value : { value },
             description: `${section} setting for ${key}`
           }
         })
