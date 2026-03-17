@@ -47,3 +47,6 @@ postgres_data/
 .cache/
 temp/
 tmp/
+
+# TypeScript
+*.tsbuildinfo
