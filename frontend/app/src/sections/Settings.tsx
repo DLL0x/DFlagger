@@ -134,21 +134,55 @@ export default function SettingsPanel() {
     dateFormat: 'YYYY-MM-DD HH:mm:ss'
   });
 
+  // Profile Form State
+  const [profileForm, setProfileForm] = useState({
+    name: 'Administrator',
+    email: 'admin@dflagger.local',
+    title: '',
+    department: 'Security Operations Center (SOC)',
+    phone: '',
+    timezone: 'UTC'
+  });
+
+  // Password Change State
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [passwordSuccess, setPasswordSuccess] = useState(false);
+
   // Load initial data
   useEffect(() => {
     fetchUsers();
     fetchRoles();
     fetchSecuritySettings();
+    loadCurrentUser();
   }, []);
+
+  // Load current user from localStorage
+  const loadCurrentUser = () => {
+    const savedUser = localStorage.getItem('dflagger_user');
+    if (savedUser) {
+      const userData = JSON.parse(savedUser);
+      setProfileForm({
+        name: userData.name || userData.username || 'Administrator',
+        email: userData.email || 'admin@dflagger.local',
+        title: userData.title || '',
+        department: userData.department || 'Security Operations Center (SOC)',
+        phone: userData.phone || '',
+        timezone: userData.timezone || 'UTC'
+      });
+    }
+  };
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/admin/users`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-      });
+      const response = await fetch(`${API_BASE_URL}/settings/admin/users`);
       if (response.ok) {
         const data = await response.json();
-        setUsers(data.users);
+        setUsers(data.users || []);
       }
     } catch (err) {
       console.error('Failed to fetch users:', err);
@@ -157,12 +191,10 @@ export default function SettingsPanel() {
 
   const fetchRoles = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/admin/roles`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-      });
+      const response = await fetch(`${API_BASE_URL}/settings/admin/roles`);
       if (response.ok) {
         const data = await response.json();
-        setRoles(data.roles);
+        setRoles(data.roles || []);
       }
     } catch (err) {
       console.error('Failed to fetch roles:', err);
@@ -171,29 +203,106 @@ export default function SettingsPanel() {
 
   const fetchSecuritySettings = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/admin/security-settings`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-      });
+      const response = await fetch(`${API_BASE_URL}/settings/admin/security-settings`);
       if (response.ok) {
         const data = await response.json();
-        setSecurityPolicy(data.security);
-        setDataRetention(data.retention);
-        setSystemConfig(data.system);
+        if (data.security) setSecurityPolicy(data.security);
+        if (data.retention) setDataRetention(data.retention);
+        if (data.system) setSystemConfig(data.system);
       }
     } catch (err) {
       console.error('Failed to fetch settings:', err);
     }
   };
 
+  // Save profile changes
+  const saveProfile = async () => {
+    setLoading(true);
+    try {
+      // Update localStorage
+      const savedUser = localStorage.getItem('dflagger_user');
+      if (savedUser) {
+        const userData = JSON.parse(savedUser);
+        const updatedUser = {
+          ...userData,
+          name: profileForm.name,
+          email: profileForm.email,
+          title: profileForm.title,
+          department: profileForm.department,
+          phone: profileForm.phone,
+          timezone: profileForm.timezone
+        };
+        localStorage.setItem('dflagger_user', JSON.stringify(updatedUser));
+      }
+      
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (err) {
+      setError('Failed to save profile');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Change password
+  const changePassword = async () => {
+    setPasswordError(null);
+    setPasswordSuccess(false);
+    
+    // Validation
+    if (!passwordForm.currentPassword) {
+      setPasswordError('Current password is required');
+      return;
+    }
+    if (!passwordForm.newPassword) {
+      setPasswordError('New password is required');
+      return;
+    }
+    if (passwordForm.newPassword.length < 8) {
+      setPasswordError('Password must be at least 8 characters');
+      return;
+    }
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setPasswordError('New passwords do not match');
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      const savedUser = localStorage.getItem('dflagger_user');
+      const userData = savedUser ? JSON.parse(savedUser) : null;
+      
+      const response = await fetch(`${API_BASE_URL}/settings/change-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: userData?.email || profileForm.email,
+          currentPassword: passwordForm.currentPassword,
+          newPassword: passwordForm.newPassword
+        })
+      });
+      
+      if (response.ok) {
+        setPasswordSuccess(true);
+        setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+        setTimeout(() => setPasswordSuccess(false), 3000);
+      } else {
+        const data = await response.json();
+        setPasswordError(data.error || 'Failed to change password');
+      }
+    } catch (err) {
+      setPasswordError('Network error. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSave = async (section: string, data: any) => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/admin/settings/${section}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
+      const response = await fetch(`${API_BASE_URL}/settings/${section}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
       });
       
@@ -243,25 +352,46 @@ export default function SettingsPanel() {
     switch (activeSection) {
       case 'profile':
         return (
-          <div className="space-y-6">
+          <div className="space-y-8">
+            {/* Profile Info */}
             <div>
               <h3 className="text-lg font-semibold mb-4">Profile Settings</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm text-gray-400 mb-1">Full Name *</label>
-                  <input type="text" defaultValue="Administrator" className="input-field w-full" />
+                  <input 
+                    type="text" 
+                    value={profileForm.name}
+                    onChange={(e) => setProfileForm({...profileForm, name: e.target.value})}
+                    className="input-field w-full" 
+                  />
                 </div>
                 <div>
                   <label className="block text-sm text-gray-400 mb-1">Email *</label>
-                  <input type="email" defaultValue="admin@company.com" className="input-field w-full" />
+                  <input 
+                    type="email" 
+                    value={profileForm.email}
+                    onChange={(e) => setProfileForm({...profileForm, email: e.target.value})}
+                    className="input-field w-full" 
+                  />
                 </div>
                 <div>
                   <label className="block text-sm text-gray-400 mb-1">Job Title</label>
-                  <input type="text" placeholder="Security Administrator" className="input-field w-full" />
+                  <input 
+                    type="text" 
+                    value={profileForm.title}
+                    onChange={(e) => setProfileForm({...profileForm, title: e.target.value})}
+                    placeholder="Security Administrator" 
+                    className="input-field w-full" 
+                  />
                 </div>
                 <div>
                   <label className="block text-sm text-gray-400 mb-1">Department</label>
-                  <select className="input-field w-full">
+                  <select 
+                    value={profileForm.department}
+                    onChange={(e) => setProfileForm({...profileForm, department: e.target.value})}
+                    className="input-field w-full"
+                  >
                     <option>Security Operations Center (SOC)</option>
                     <option>Incident Response</option>
                     <option>Threat Intelligence</option>
@@ -271,11 +401,21 @@ export default function SettingsPanel() {
                 </div>
                 <div>
                   <label className="block text-sm text-gray-400 mb-1">Phone Number</label>
-                  <input type="tel" placeholder="+1 (555) 123-4567" className="input-field w-full" />
+                  <input 
+                    type="tel" 
+                    value={profileForm.phone}
+                    onChange={(e) => setProfileForm({...profileForm, phone: e.target.value})}
+                    placeholder="+1 (555) 123-4567" 
+                    className="input-field w-full" 
+                  />
                 </div>
                 <div>
                   <label className="block text-sm text-gray-400 mb-1">Timezone</label>
-                  <select className="input-field w-full">
+                  <select 
+                    value={profileForm.timezone}
+                    onChange={(e) => setProfileForm({...profileForm, timezone: e.target.value})}
+                    className="input-field w-full"
+                  >
                     <option value="UTC">UTC</option>
                     <option value="EST">Eastern Time (EST/EDT)</option>
                     <option value="CST">Central Time (CST/CDT)</option>
@@ -286,21 +426,77 @@ export default function SettingsPanel() {
                   </select>
                 </div>
               </div>
+              <div className="mt-6">
+                <button 
+                  onClick={saveProfile}
+                  disabled={loading}
+                  className="btn-primary flex items-center gap-2"
+                >
+                  {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                  Save Profile
+                </button>
+              </div>
             </div>
 
-            <div className="border-t border-white/5 pt-6">
-              <h4 className="font-medium mb-4">Profile Picture</h4>
-              <div className="flex items-center gap-4">
-                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-3xl font-bold">
-                  A
+            {/* Password Change */}
+            <div className="border-t border-white/10 pt-6">
+              <h4 className="font-medium mb-4 flex items-center gap-2">
+                <Key className="w-4 h-4 text-cyan-400" />
+                Change Password
+              </h4>
+              <div className="bg-slate-900/50 border border-white/10 rounded-lg p-4 space-y-4 max-w-md">
+                <div>
+                  <label className="block text-sm text-gray-400 mb-1">Current Password</label>
+                  <input 
+                    type="password" 
+                    value={passwordForm.currentPassword}
+                    onChange={(e) => setPasswordForm({...passwordForm, currentPassword: e.target.value})}
+                    className="input-field w-full" 
+                    placeholder="Enter current password"
+                  />
                 </div>
-                <div className="space-y-2">
-                  <div className="flex gap-2">
-                    <button className="btn-secondary">Change Photo</button>
-                    <button className="btn-secondary text-red-400">Remove</button>
+                <div>
+                  <label className="block text-sm text-gray-400 mb-1">New Password</label>
+                  <input 
+                    type="password" 
+                    value={passwordForm.newPassword}
+                    onChange={(e) => setPasswordForm({...passwordForm, newPassword: e.target.value})}
+                    className="input-field w-full" 
+                    placeholder="Enter new password (min 8 chars)"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-400 mb-1">Confirm New Password</label>
+                  <input 
+                    type="password" 
+                    value={passwordForm.confirmPassword}
+                    onChange={(e) => setPasswordForm({...passwordForm, confirmPassword: e.target.value})}
+                    className="input-field w-full" 
+                    placeholder="Confirm new password"
+                  />
+                </div>
+                
+                {passwordError && (
+                  <div className="p-3 bg-red-500/10 border border-red-500/20 rounded text-red-400 text-sm">
+                    {passwordError}
                   </div>
-                  <p className="text-xs text-gray-500">JPG, GIF or PNG. Max size 2MB.</p>
-                </div>
+                )}
+                
+                {passwordSuccess && (
+                  <div className="p-3 bg-green-500/10 border border-green-500/20 rounded text-green-400 text-sm flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4" />
+                    Password changed successfully!
+                  </div>
+                )}
+                
+                <button 
+                  onClick={changePassword}
+                  disabled={loading}
+                  className="btn-primary w-full flex items-center justify-center gap-2"
+                >
+                  {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Key className="w-4 h-4" />}
+                  Change Password
+                </button>
               </div>
             </div>
 

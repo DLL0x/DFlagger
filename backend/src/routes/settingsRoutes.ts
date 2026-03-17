@@ -461,4 +461,38 @@ function settingsToObject(settings: any[]) {
   return result
 }
 
+// POST /api/settings/change-password - Change user password
+router.post("/change-password", async (req, res) => {
+  try {
+    const { email, currentPassword, newPassword } = req.body
+
+    if (!email || !currentPassword || !newPassword) {
+      return res.status(400).json({ error: "Email, current password, and new password are required" })
+    }
+
+    // Find user by email
+    const user = await prisma.user.findUnique({ where: { email } })
+    if (!user) {
+      return res.status(404).json({ error: "User not found" })
+    }
+
+    // In production, compare hashed passwords
+    // For demo, compare plaintext
+    if (user.password !== currentPassword) {
+      return res.status(401).json({ error: "Current password is incorrect" })
+    }
+
+    // Update password
+    await prisma.user.update({
+      where: { email },
+      data: { password: newPassword }
+    })
+
+    res.json({ message: "Password changed successfully" })
+  } catch (error) {
+    console.error("Error changing password:", error)
+    res.status(500).json({ error: "Failed to change password" })
+  }
+})
+
 export default router
