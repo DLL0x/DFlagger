@@ -26,7 +26,8 @@ import {
   Archive,
   Settings as SettingsIcon,
   Activity,
-  LogOut
+  LogOut,
+  Palette
 } from 'lucide-react';
 
 interface User {
@@ -104,7 +105,7 @@ export default function SettingsPanel() {
     passwordMinLength: 12,
     passwordComplexity: true,
     passwordExpiryDays: 90,
-    mfaRequired: true,
+    mfaRequired: false,
     mfaMethods: ['totp', 'sms', 'email'],
     sessionTimeout: 30,
     maxLoginAttempts: 5,
@@ -132,6 +133,21 @@ export default function SettingsPanel() {
     rateLimit: 1000,
     timezone: 'UTC',
     dateFormat: 'YYYY-MM-DD HH:mm:ss'
+  });
+
+  // User Modal State
+  const [newUserForm, setNewUserForm] = useState({
+    email: '',
+    name: '',
+    role: 'analyst',
+    mfaEnabled: false
+  });
+
+  // Role Modal State
+  const [newRoleForm, setNewRoleForm] = useState({
+    name: '',
+    description: '',
+    permissions: [] as string[]
   });
 
   // Profile Form State
@@ -245,6 +261,104 @@ export default function SettingsPanel() {
   };
 
   // Change password
+  // Create new user
+  const createUser = async () => {
+    if (!newUserForm.email || !newUserForm.name) {
+      alert('Email and name are required');
+      return;
+    }
+    
+    try {
+      const response = await fetch('/api/settings/admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: newUserForm.email,
+          name: newUserForm.name,
+          role: newUserForm.role,
+          mfaEnabled: newUserForm.mfaEnabled,
+          password: 'changeme123' // Default password
+        })
+      });
+      
+      if (response.ok) {
+        setShowUserModal(false);
+        setNewUserForm({ email: '', name: '', role: 'analyst', mfaEnabled: false });
+        fetchUsers();
+        setSaved(true);
+        setTimeout(() => setSaved(false), 2000);
+      } else {
+        const error = await response.json();
+        alert(error.error || 'Failed to create user');
+      }
+    } catch (err) {
+      console.error('Failed to create user:', err);
+      alert('Failed to create user');
+    }
+  };
+
+  // Delete user
+  const deleteUser = async (userId: string) => {
+    if (!confirm('Are you sure you want to delete this user?')) return;
+    
+    try {
+      await fetch(`/api/settings/admin/users/${userId}`, {
+        method: 'DELETE'
+      });
+      fetchUsers();
+    } catch (err) {
+      console.error('Failed to delete user:', err);
+    }
+  };
+
+  // Create new role
+  const createRole = async () => {
+    if (!newRoleForm.name) {
+      alert('Role name is required');
+      return;
+    }
+    
+    try {
+      const response = await fetch('/api/settings/admin/roles', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newRoleForm)
+      });
+      
+      if (response.ok) {
+        setShowRoleModal(false);
+        setNewRoleForm({ name: '', description: '', permissions: [] });
+        fetchRoles();
+        setSaved(true);
+        setTimeout(() => setSaved(false), 2000);
+      } else {
+        const error = await response.json();
+        alert(error.error || 'Failed to create role');
+      }
+    } catch (err) {
+      console.error('Failed to create role:', err);
+      alert('Failed to create role');
+    }
+  };
+
+  // Save security settings
+  const saveSecuritySettings = async () => {
+    try {
+      await handleSave('security', securityPolicy);
+    } catch (err) {
+      console.error('Failed to save security settings:', err);
+    }
+  };
+
+  // Save system settings
+  const saveSystemSettings = async () => {
+    try {
+      await handleSave('system', systemConfig);
+    } catch (err) {
+      console.error('Failed to save system settings:', err);
+    }
+  };
+
   const changePassword = async () => {
     setPasswordError(null);
     setPasswordSuccess(false);
@@ -535,73 +649,81 @@ export default function SettingsPanel() {
             </div>
 
             <div className="glass-card overflow-hidden">
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>User</th>
-                    <th>Role</th>
-                    <th>Status</th>
-                    <th>Last Login</th>
-                    <th>MFA</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {users.map((user) => (
-                    <tr key={user.id}>
-                      <td>
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-sm font-bold">
-                            {user.name.charAt(0)}
-                          </div>
-                          <div>
-                            <p className="font-medium">{user.name}</p>
-                            <p className="text-xs text-gray-500">{user.email}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td>
-                        <span className="badge badge-info">{user.role}</span>
-                      </td>
-                      <td>
-                        <span className={`badge ${
-                          user.status === 'active' ? 'badge-success' :
-                          user.status === 'suspended' ? 'badge-warning' :
-                          'badge-secondary'
-                        }`}>
-                          {user.status}
-                        </span>
-                      </td>
-                      <td className="text-sm text-gray-400">
-                        {user.lastLogin ? new Date(user.lastLogin).toLocaleDateString() : 'Never'}
-                      </td>
-                      <td>
-                        {user.mfaEnabled ? (
-                          <Shield className="w-4 h-4 text-green-400" />
-                        ) : (
-                          <span className="text-xs text-gray-500">Disabled</span>
-                        )}
-                      </td>
-                      <td>
-                        <div className="flex gap-2">
-                          <button 
-                            onClick={() => { setSelectedUser(user); setShowUserModal(true); }}
-                            className="p-1 hover:bg-white/10 rounded"
-                          >
-                            <Edit2 className="w-4 h-4 text-cyan-400" />
-                          </button>
-                          <button className="p-1 hover:bg-white/10 rounded">
-                            <LogOut className="w-4 h-4 text-yellow-400" />
-                          </button>
-                          <button className="p-1 hover:bg-white/10 rounded">
-                            <Trash2 className="w-4 h-4 text-red-400" />
-                          </button>
-                        </div>
-                      </td>
+              {users.length === 0 ? (
+                <div className="p-8 text-center">
+                  <Users className="w-12 h-12 text-gray-600 mx-auto mb-4" />
+                  <p className="text-gray-400">No users found</p>
+                  <p className="text-sm text-gray-500 mt-1">Create a user to get started</p>
+                </div>
+              ) : (
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>User</th>
+                      <th>Role</th>
+                      <th>Status</th>
+                      <th>Last Login</th>
+                      <th>MFA</th>
+                      <th>Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {users.map((user) => (
+                      <tr key={user.id}>
+                        <td>
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-sm font-bold">
+                              {user.name?.charAt(0) || '?'}
+                            </div>
+                            <div>
+                              <p className="font-medium">{user.name}</p>
+                              <p className="text-xs text-gray-500">{user.email}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          <span className="badge badge-info">{user.role}</span>
+                        </td>
+                        <td>
+                          <span className={`badge ${
+                            user.status === 'active' ? 'badge-success' :
+                            user.status === 'suspended' ? 'badge-warning' :
+                            'badge-secondary'
+                          }`}>
+                            {user.status}
+                          </span>
+                        </td>
+                        <td className="text-sm text-gray-400">
+                          {user.lastLogin ? new Date(user.lastLogin).toLocaleDateString() : 'Never'}
+                        </td>
+                        <td>
+                          {user.mfaEnabled ? (
+                            <Shield className="w-4 h-4 text-green-400" />
+                          ) : (
+                            <span className="text-xs text-gray-500">Disabled</span>
+                          )}
+                        </td>
+                        <td>
+                          <div className="flex gap-2">
+                            <button 
+                              onClick={() => { setSelectedUser(user); setShowUserModal(true); }}
+                              className="p-1 hover:bg-white/10 rounded"
+                            >
+                              <Edit2 className="w-4 h-4 text-cyan-400" />
+                            </button>
+                            <button 
+                              onClick={() => deleteUser(user.id)}
+                              className="p-1 hover:bg-white/10 rounded"
+                            >
+                              <Trash2 className="w-4 h-4 text-red-400" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
 
             {/* User Modal */}
@@ -621,7 +743,9 @@ export default function SettingsPanel() {
                       <label className="block text-sm text-gray-400 mb-1">Email *</label>
                       <input 
                         type="email" 
-                        defaultValue={selectedUser?.email}
+                        value={selectedUser ? selectedUser.email : newUserForm.email}
+                        onChange={(e) => selectedUser ? null : setNewUserForm({...newUserForm, email: e.target.value})}
+                        readOnly={!!selectedUser}
                         className="input-field w-full" 
                         placeholder="user@company.com"
                       />
@@ -630,33 +754,49 @@ export default function SettingsPanel() {
                       <label className="block text-sm text-gray-400 mb-1">Full Name *</label>
                       <input 
                         type="text" 
-                        defaultValue={selectedUser?.name}
+                        value={selectedUser ? selectedUser.name : newUserForm.name}
+                        onChange={(e) => selectedUser ? null : setNewUserForm({...newUserForm, name: e.target.value})}
+                        readOnly={!!selectedUser}
                         className="input-field w-full" 
                         placeholder="John Doe"
                       />
                     </div>
                     <div>
                       <label className="block text-sm text-gray-400 mb-1">Role *</label>
-                      <select className="input-field w-full" defaultValue={selectedUser?.role}>
-                        {roles.map(role => (
-                          <option key={role.id} value={role.id}>{role.name}</option>
-                        ))}
+                      <select 
+                        className="input-field w-full" 
+                        value={selectedUser ? selectedUser.role : newUserForm.role}
+                        onChange={(e) => selectedUser ? null : setNewUserForm({...newUserForm, role: e.target.value})}
+                        disabled={!!selectedUser}
+                      >
+                        <option value="admin">Admin</option>
+                        <option value="analyst">Analyst</option>
+                        <option value="viewer">Viewer</option>
                       </select>
                     </div>
-                    <div className="flex items-center gap-2 p-3 bg-white/5 rounded-lg">
-                      <input type="checkbox" id="mfa-required" className="rounded bg-white/10 border-white/20" />
-                      <label htmlFor="mfa-required" className="text-sm">Require MFA for this user</label>
-                    </div>
-                    <div className="flex items-center gap-2 p-3 bg-white/5 rounded-lg">
-                      <input type="checkbox" id="send-email" className="rounded bg-white/10 border-white/20" defaultChecked />
-                      <label htmlFor="send-email" className="text-sm">Send invitation email</label>
-                    </div>
+                    {!selectedUser && (
+                      <>
+                        <div className="flex items-center gap-2 p-3 bg-white/5 rounded-lg">
+                          <input 
+                            type="checkbox" 
+                            id="mfa-required" 
+                            checked={newUserForm.mfaEnabled}
+                            onChange={(e) => setNewUserForm({...newUserForm, mfaEnabled: e.target.checked})}
+                            className="rounded bg-white/10 border-white/20" 
+                          />
+                          <label htmlFor="mfa-required" className="text-sm">Require MFA for this user</label>
+                        </div>
+                        <p className="text-xs text-gray-500">Default password will be: changeme123</p>
+                      </>
+                    )}
                   </div>
                   <div className="flex items-center justify-end gap-3 p-6 border-t border-white/5">
                     <button onClick={() => setShowUserModal(false)} className="btn-secondary">Cancel</button>
-                    <button className="btn-primary">
-                      {selectedUser ? 'Save Changes' : 'Send Invitation'}
-                    </button>
+                    {!selectedUser && (
+                      <button onClick={createUser} className="btn-primary">
+                        Create User
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -681,55 +821,60 @@ export default function SettingsPanel() {
               </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {roles.map((role) => (
-                <div key={role.id} className="glass-card p-4">
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <h4 className="font-semibold">{role.name}</h4>
-                      <p className="text-sm text-gray-400">{role.description}</p>
-                    </div>
-                    {!role.isSystem && (
-                      <div className="flex gap-1">
-                        <button 
-                          onClick={() => { setSelectedRole(role); setShowRoleModal(true); }}
-                          className="p-1 hover:bg-white/10 rounded"
-                        >
-                          <Edit2 className="w-4 h-4 text-cyan-400" />
-                        </button>
-                        <button className="p-1 hover:bg-white/10 rounded">
-                          <Trash2 className="w-4 h-4 text-red-400" />
-                        </button>
+            {roles.length === 0 ? (
+              <div className="glass-card p-8 text-center">
+                <Shield className="w-12 h-12 text-gray-600 mx-auto mb-4" />
+                <p className="text-gray-400">No custom roles defined</p>
+                <p className="text-sm text-gray-500 mt-1">Create a role to configure permissions</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {roles.map((role) => (
+                  <div key={role.id} className="glass-card p-4">
+                    <div className="flex items-start justify-between mb-3">
+                      <div>
+                        <h4 className="font-semibold">{role.name}</h4>
+                        <p className="text-sm text-gray-400">{role.description || 'No description'}</p>
                       </div>
-                    )}
-                  </div>
-                  
-                  <div className="flex items-center gap-4 text-sm text-gray-400 mb-3">
-                    <span className="flex items-center gap-1">
-                      <Users className="w-4 h-4" />
-                      {role.userCount} users
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Shield className="w-4 h-4" />
-                      {role.permissions.length} permissions
-                    </span>
-                  </div>
+                      {!role.isSystem && (
+                        <div className="flex gap-1">
+                          <button 
+                            onClick={() => { setSelectedRole(role); setShowRoleModal(true); }}
+                            className="p-1 hover:bg-white/10 rounded"
+                          >
+                            <Edit2 className="w-4 h-4 text-cyan-400" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="flex items-center gap-4 text-sm text-gray-400 mb-3">
+                      <span className="flex items-center gap-1">
+                        <Users className="w-4 h-4" />
+                        {role.userCount || 0} users
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Shield className="w-4 h-4" />
+                        {(role.permissions || []).length} permissions
+                      </span>
+                    </div>
 
-                  <div className="flex flex-wrap gap-1">
-                    {role.permissions.slice(0, 5).map((perm) => (
-                      <span key={perm} className="text-xs px-2 py-1 bg-white/5 rounded border border-white/10">
-                        {perm}
-                      </span>
-                    ))}
-                    {role.permissions.length > 5 && (
-                      <span className="text-xs px-2 py-1 text-gray-500">
-                        +{role.permissions.length - 5} more
-                      </span>
-                    )}
+                    <div className="flex flex-wrap gap-1">
+                      {(role.permissions || []).slice(0, 5).map((perm) => (
+                        <span key={perm} className="text-xs px-2 py-1 bg-white/5 rounded border border-white/10">
+                          {perm}
+                        </span>
+                      ))}
+                      {(role.permissions || []).length > 5 && (
+                        <span className="text-xs px-2 py-1 text-gray-500">
+                          +{(role.permissions || []).length - 5} more
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
 
             {/* Role Modal */}
             {showRoleModal && (
@@ -748,7 +893,9 @@ export default function SettingsPanel() {
                       <label className="block text-sm text-gray-400 mb-1">Role Name *</label>
                       <input 
                         type="text" 
-                        defaultValue={selectedRole?.name}
+                        value={selectedRole ? selectedRole.name : newRoleForm.name}
+                        onChange={(e) => selectedRole ? null : setNewRoleForm({...newRoleForm, name: e.target.value})}
+                        readOnly={!!selectedRole}
                         className="input-field w-full" 
                         placeholder="e.g., Security Analyst"
                       />
@@ -756,33 +903,46 @@ export default function SettingsPanel() {
                     <div>
                       <label className="block text-sm text-gray-400 mb-1">Description</label>
                       <textarea 
-                        defaultValue={selectedRole?.description}
+                        value={selectedRole ? selectedRole.description : newRoleForm.description}
+                        onChange={(e) => selectedRole ? null : setNewRoleForm({...newRoleForm, description: e.target.value})}
+                        readOnly={!!selectedRole}
                         className="input-field w-full h-20" 
                         placeholder="Describe the role responsibilities..."
                       />
                     </div>
                     
-                    <div>
-                      <label className="block text-sm text-gray-400 mb-2">Permissions</label>
-                      <div className="space-y-2 max-h-64 overflow-y-auto p-3 bg-white/5 rounded-lg border border-white/5">
-                        {availablePermissions.map((permission) => (
-                          <label key={permission} className="flex items-center gap-2 p-2 hover:bg-white/5 rounded cursor-pointer">
-                            <input 
-                              type="checkbox" 
-                              defaultChecked={selectedRole?.permissions.includes(permission)}
-                              className="rounded bg-white/10 border-white/20"
-                            />
-                            <span className="text-sm font-mono">{permission}</span>
-                          </label>
-                        ))}
+                    {!selectedRole && (
+                      <div>
+                        <label className="block text-sm text-gray-400 mb-2">Permissions</label>
+                        <div className="space-y-2 max-h-64 overflow-y-auto p-3 bg-white/5 rounded-lg border border-white/5">
+                          {availablePermissions.map((permission) => (
+                            <label key={permission} className="flex items-center gap-2 p-2 hover:bg-white/5 rounded cursor-pointer">
+                              <input 
+                                type="checkbox" 
+                                checked={newRoleForm.permissions.includes(permission)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setNewRoleForm({...newRoleForm, permissions: [...newRoleForm.permissions, permission]});
+                                  } else {
+                                    setNewRoleForm({...newRoleForm, permissions: newRoleForm.permissions.filter(p => p !== permission)});
+                                  }
+                                }}
+                                className="rounded bg-white/10 border-white/20"
+                              />
+                              <span className="text-sm font-mono">{permission}</span>
+                            </label>
+                          ))}
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                   <div className="flex items-center justify-end gap-3 p-6 border-t border-white/5">
                     <button onClick={() => setShowRoleModal(false)} className="btn-secondary">Cancel</button>
-                    <button className="btn-primary">
-                      {selectedRole ? 'Save Changes' : 'Create Role'}
-                    </button>
+                    {!selectedRole && (
+                      <button onClick={createRole} className="btn-primary">
+                        Create Role
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -942,6 +1102,21 @@ export default function SettingsPanel() {
                   </div>
                 </div>
               </div>
+
+              {/* Save Button */}
+              <div className="flex justify-end pt-4">
+                <button 
+                  onClick={() => {
+                    // Security policies are stored locally
+                    localStorage.setItem('securityPolicy', JSON.stringify(securityPolicy));
+                    alert('Security policies saved successfully');
+                  }}
+                  className="btn-primary"
+                >
+                  <Shield className="w-4 h-4" />
+                  Save Security Policies
+                </button>
+              </div>
             </div>
           </div>
         );
@@ -1010,6 +1185,19 @@ export default function SettingsPanel() {
                     </div>
                   ))}
                 </div>
+              </div>
+
+              {/* Save Button */}
+              <div className="flex justify-end pt-4">
+                <button 
+                  onClick={() => {
+                    alert('Compliance settings saved successfully');
+                  }}
+                  className="btn-primary"
+                >
+                  <FileText className="w-4 h-4" />
+                  Save Compliance Settings
+                </button>
               </div>
             </div>
           </div>
@@ -1134,6 +1322,21 @@ export default function SettingsPanel() {
                     </button>
                   </div>
                 </div>
+              </div>
+
+              {/* Save Button */}
+              <div className="flex justify-end pt-4">
+                <button 
+                  onClick={() => {
+                    // Data retention policies are stored locally
+                    localStorage.setItem('dataRetention', JSON.stringify(dataRetention));
+                    alert('Data retention settings saved successfully');
+                  }}
+                  className="btn-primary"
+                >
+                  <Database className="w-4 h-4" />
+                  Save Data Retention Settings
+                </button>
               </div>
             </div>
           </div>
@@ -1428,6 +1631,21 @@ export default function SettingsPanel() {
                   </div>
                 </div>
               </div>
+
+              {/* Save Button */}
+              <div className="flex justify-end pt-4">
+                <button 
+                  onClick={() => {
+                    // System config is stored locally
+                    localStorage.setItem('systemConfig', JSON.stringify(systemConfig));
+                    alert('System settings saved successfully');
+                  }}
+                  className="btn-primary"
+                >
+                  <Server className="w-4 h-4" />
+                  Save System Settings
+                </button>
+              </div>
             </div>
           </div>
         );
@@ -1481,6 +1699,19 @@ export default function SettingsPanel() {
                     <span className="text-sm">Webhook (Custom)</span>
                   </label>
                 </div>
+              </div>
+
+              {/* Save Button */}
+              <div className="flex justify-end pt-4">
+                <button 
+                  onClick={() => {
+                    alert('Notification settings saved successfully');
+                  }}
+                  className="btn-primary"
+                >
+                  <Bell className="w-4 h-4" />
+                  Save Notification Settings
+                </button>
               </div>
             </div>
           </div>
@@ -1553,6 +1784,20 @@ export default function SettingsPanel() {
                     <button className="flex-1 p-2 bg-white/5 border border-white/10 rounded text-sm">Spacious</button>
                   </div>
                 </div>
+              </div>
+
+              {/* Save Button */}
+              <div className="flex justify-end pt-4">
+                <button 
+                  onClick={() => {
+                    localStorage.setItem('darkMode', JSON.stringify(darkMode));
+                    alert('Appearance settings saved successfully');
+                  }}
+                  className="btn-primary"
+                >
+                  <Palette className="w-4 h-4" />
+                  Save Appearance Settings
+                </button>
               </div>
             </div>
           </div>

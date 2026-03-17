@@ -38,7 +38,7 @@ app.use("/api/alerts", dashboardRoutes)
 app.use("/api/analytics", dashboardRoutes)
 
 // Admin routes (aliases to settings routes)
-app.use("/api/adwhmin", settingsRoutes)
+app.use("/api/admin", settingsRoutes)
 
 // Error handling middleware
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
