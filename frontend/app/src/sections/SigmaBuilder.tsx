@@ -21,6 +21,7 @@ import {
   Search,
   FolderOpen
 } from 'lucide-react';
+import { trackRuleCreated, trackRuleDeleted } from '../utils/activityTracker';
 
 // Official Sigma Types
 interface SigmaDetection {
@@ -314,10 +315,12 @@ export default function SigmaBuilder() {
   };
 
   // Delete a saved rule
-  const deleteSavedRule = async (ruleId: string) => {
+  const deleteSavedRule = async (ruleId: string, ruleTitle?: string) => {
     if (!confirm('Are you sure you want to delete this rule?')) return;
     try {
       await fetch(`http://localhost:4000/api/sigma/${ruleId}`, { method: 'DELETE' });
+      // Track activity
+      await trackRuleDeleted('sigma', ruleTitle || 'Unknown Rule');
       await fetchSavedRules();
     } catch (err) {
       console.error('Failed to delete rule:', err);
@@ -494,7 +497,7 @@ modified: ${rule.modified}
 
   const saveToBackend = async () => {
     try {
-      await fetch("http://localhost:4000/api/sigma", {
+      const response = await fetch("http://localhost:4000/api/sigma", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -507,8 +510,11 @@ modified: ${rule.modified}
           author: rule.author
         })
       });
+      const data = await response.json();
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
+      // Track activity
+      await trackRuleCreated('sigma', rule.title, data.id);
       // Refresh saved rules list
       await fetchSavedRules();
     } catch (err) {
@@ -732,7 +738,7 @@ modified: ${rule.modified}
                       Load
                     </button>
                     <button
-                      onClick={() => deleteSavedRule(savedRule.id)}
+                      onClick={() => deleteSavedRule(savedRule.id, savedRule.title)}
                       className="px-3 py-2 bg-red-500/10 text-red-400 rounded-lg text-sm hover:bg-red-500/20 transition-colors"
                     >
                       <Trash2 className="w-4 h-4" />

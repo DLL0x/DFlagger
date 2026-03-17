@@ -46,6 +46,7 @@ import {
   ScanLine,
   FileJson
 } from 'lucide-react';
+import { trackRuleCreated, trackRuleDeleted } from '../utils/activityTracker';
 
 // ==========================================
 // PLATFORM CONFIGURATIONS & PARSER REFERENCES
@@ -3342,13 +3343,16 @@ const handleSave = async () => {
   } else {
     // Create new use case
     try {
-      await fetch("http://localhost:4000/api/usecases", {
+      const response = await fetch("http://localhost:4000/api/usecases", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
         body: JSON.stringify(payload)
       });
+      const data = await response.json();
+      // Track activity
+      await trackRuleCreated('use_case', formData.name || 'New Use Case', data.id);
       // Refresh from backend
       await fetchUseCases();
     } catch (err) {
@@ -3369,10 +3373,14 @@ const handleSave = async () => {
 
   const handleDelete = async (id: string) => {
     if (confirm('Are you sure you want to delete this use case?')) {
+      // Find the use case name before deleting
+      const useCase = useCases.find(uc => uc.id === id);
       try {
         await fetch(`http://localhost:4000/api/usecases/${id}`, {
           method: "DELETE"
         });
+        // Track activity
+        await trackRuleDeleted('use_case', useCase?.name || 'Unknown Use Case');
         // Refresh from backend
         await fetchUseCases();
       } catch (err) {

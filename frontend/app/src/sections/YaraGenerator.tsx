@@ -23,6 +23,7 @@ import {
   Search,
   FolderOpen
 } from 'lucide-react';
+import { trackRuleCreated, trackRuleDeleted } from '../utils/activityTracker';
 
 interface YaraString {
   id: string;
@@ -228,10 +229,12 @@ export default function YaraGenerator() {
   };
 
   // Delete a saved rule
-  const deleteSavedRule = async (ruleId: string) => {
+  const deleteSavedRule = async (ruleId: string, ruleTitle?: string) => {
     if (!confirm('Are you sure you want to delete this rule?')) return;
     try {
       await fetch(`http://localhost:4000/api/yara/${ruleId}`, { method: 'DELETE' });
+      // Track activity
+      await trackRuleDeleted('yara', ruleTitle || 'Unknown Rule');
       await fetchSavedRules();
     } catch (err) {
       console.error('Failed to delete rule:', err);
@@ -341,7 +344,7 @@ ${rule.strings.map(s => {
 
   const saveToBackend = async () => {
     try {
-      await fetch("http://localhost:4000/api/yara", {
+      const response = await fetch("http://localhost:4000/api/yara", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -353,8 +356,11 @@ ${rule.strings.map(s => {
           author: rule.author
         })
       });
+      const data = await response.json();
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
+      // Track activity
+      await trackRuleCreated('yara', rule.name, data.id);
       // Refresh saved rules list
       await fetchSavedRules();
     } catch (err) {
@@ -623,7 +629,7 @@ ${rule.strings.map(s => {
                       Load
                     </button>
                     <button
-                      onClick={() => deleteSavedRule(savedRule.id)}
+                      onClick={() => deleteSavedRule(savedRule.id, savedRule.title)}
                       className="px-3 py-2 bg-red-500/10 text-red-400 rounded-lg text-sm hover:bg-red-500/20 transition-colors"
                     >
                       <Trash2 className="w-4 h-4" />
