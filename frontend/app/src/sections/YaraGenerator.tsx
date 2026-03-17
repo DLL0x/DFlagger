@@ -179,7 +179,7 @@ export default function YaraGenerator() {
   const fetchSavedRules = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:4000/api/yara');
+      const response = await fetch('/api/yara');
       const data = await response.json();
       setSavedRules(data.rules || []);
     } catch (err) {
@@ -192,7 +192,7 @@ export default function YaraGenerator() {
   // Load a saved rule
   const loadSavedRule = async (ruleId: string) => {
     try {
-      const response = await fetch(`http://localhost:4000/api/yara/${ruleId}`);
+      const response = await fetch(`/api/yara/${ruleId}`);
       const data = await response.json();
       if (data) {
         // Populate basic fields from the saved rule
@@ -232,7 +232,7 @@ export default function YaraGenerator() {
   const deleteSavedRule = async (ruleId: string, ruleTitle?: string) => {
     if (!confirm('Are you sure you want to delete this rule?')) return;
     try {
-      await fetch(`http://localhost:4000/api/yara/${ruleId}`, { method: 'DELETE' });
+      await fetch(`/api/yara/${ruleId}`, { method: 'DELETE' });
       // Track activity
       await trackRuleDeleted('yara', ruleTitle || 'Unknown Rule');
       await fetchSavedRules();
@@ -344,7 +344,7 @@ ${rule.strings.map(s => {
 
   const saveToBackend = async () => {
     try {
-      const response = await fetch("http://localhost:4000/api/yara", {
+      const response = await fetch("/api/yara", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

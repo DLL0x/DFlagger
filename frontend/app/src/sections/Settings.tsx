@@ -82,7 +82,7 @@ interface SystemConfig {
   dateFormat: string;
 }
 
-const API_BASE_URL = 'http://localhost:4000/api';
+const API_BASE_URL = '/api';
 
 export default function SettingsPanel() {
   const [activeSection, setActiveSection] = useState('profile');

@@ -263,7 +263,7 @@ export default function SigmaBuilder() {
   const fetchSavedRules = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:4000/api/sigma');
+      const response = await fetch('/api/sigma');
       const data = await response.json();
       setSavedRules(data.rules || []);
     } catch (err) {
@@ -276,7 +276,7 @@ export default function SigmaBuilder() {
   // Load a saved rule
   const loadSavedRule = async (ruleId: string) => {
     try {
-      const response = await fetch(`http://localhost:4000/api/sigma/${ruleId}`);
+      const response = await fetch(`/api/sigma/${ruleId}`);
       const data = await response.json();
       if (data) {
         // Populate basic fields from the saved rule
@@ -318,7 +318,7 @@ export default function SigmaBuilder() {
   const deleteSavedRule = async (ruleId: string, ruleTitle?: string) => {
     if (!confirm('Are you sure you want to delete this rule?')) return;
     try {
-      await fetch(`http://localhost:4000/api/sigma/${ruleId}`, { method: 'DELETE' });
+      await fetch(`/api/sigma/${ruleId}`, { method: 'DELETE' });
       // Track activity
       await trackRuleDeleted('sigma', ruleTitle || 'Unknown Rule');
       await fetchSavedRules();
@@ -497,7 +497,7 @@ modified: ${rule.modified}
 
   const saveToBackend = async () => {
     try {
-      const response = await fetch("http://localhost:4000/api/sigma", {
+      const response = await fetch("/api/sigma", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

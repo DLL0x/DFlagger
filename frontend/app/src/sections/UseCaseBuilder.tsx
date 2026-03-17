@@ -2984,7 +2984,7 @@ export default function UseCaseBuilder() {
   // Fetch use cases from backend
   const fetchUseCases = async () => {
     try {
-      const response = await fetch("http://localhost:4000/api/usecases");
+      const response = await fetch("/api/usecases");
       const data = await response.json();
       
       // Transform backend data to frontend format
@@ -3035,7 +3035,7 @@ export default function UseCaseBuilder() {
         author: useCase.author || 'Security Analyst'
       };
       
-      await fetch("http://localhost:4000/api/usecases", {
+      await fetch("/api/usecases", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -3328,7 +3328,7 @@ const handleSave = async () => {
   if (editingUseCase) {
     // Update existing use case
     try {
-      await fetch(`http://localhost:4000/api/usecases/${editingUseCase.id}`, {
+      await fetch(`/api/usecases/${editingUseCase.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json"
@@ -3343,7 +3343,7 @@ const handleSave = async () => {
   } else {
     // Create new use case
     try {
-      const response = await fetch("http://localhost:4000/api/usecases", {
+      const response = await fetch("/api/usecases", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -3376,7 +3376,7 @@ const handleSave = async () => {
       // Find the use case name before deleting
       const useCase = useCases.find(uc => uc.id === id);
       try {
-        await fetch(`http://localhost:4000/api/usecases/${id}`, {
+        await fetch(`/api/usecases/${id}`, {
           method: "DELETE"
         });
         // Track activity
