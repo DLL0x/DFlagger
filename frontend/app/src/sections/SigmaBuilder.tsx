@@ -278,12 +278,34 @@ export default function SigmaBuilder() {
       const response = await fetch(`http://localhost:4000/api/sigma/${ruleId}`);
       const data = await response.json();
       if (data) {
-        // Parse the YAML rule to populate the builder
-        const parsed = parseSigmaYaml(data.rule);
-        if (parsed) {
-          setRule(parsed);
-          setActiveTab('builder');
-        }
+        // Populate basic fields from the saved rule
+        // Note: data.rule contains the generated YAML text
+        setRule({
+          title: data.title || 'Loaded_Rule',
+          id: data.id || crypto.randomUUID(),
+          status: (data.status as any) || 'experimental',
+          description: data.description || '',
+          author: data.author || 'Security Analyst',
+          date: new Date().toISOString().split('T')[0],
+          modified: new Date().toISOString().split('T')[0],
+          logsource: data.logsource || { category: 'process_creation' },
+          detections: [{ 
+            id: '1', 
+            name: 'selection', 
+            type: 'field', 
+            field: 'CommandLine', 
+            modifier: 'contains', 
+            value: ['suspicious'], 
+            negation: false 
+          }],
+          condition: 'selection',
+          fields: ['ComputerName', 'User', 'CommandLine'],
+          falsepositives: data.falsepositives || [],
+          level: (data.level as any) || 'high',
+          tags: data.tags || [],
+          references: data.references || []
+        });
+        setActiveTab('builder');
       }
     } catch (err) {
       console.error('Failed to load rule:', err);

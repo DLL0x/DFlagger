@@ -193,9 +193,32 @@ export default function YaraGenerator() {
     try {
       const response = await fetch(`http://localhost:4000/api/yara/${ruleId}`);
       const data = await response.json();
-      if (data && data.rule) {
-        // Parse the rule and populate the form
-        setRule(data.rule as YaraRule);
+      if (data) {
+        // Populate basic fields from the saved rule
+        // Note: data.rule contains the generated YARA text, not the form data
+        // So we populate what we can from the record
+        setRule({
+          name: data.title || 'Loaded_Rule',
+          description: data.description || '',
+          author: data.author || 'Security Analyst',
+          date: new Date().toISOString().split('T')[0],
+          version: '1.0',
+          reference: data.reference || '',
+          source: '',
+          hash: data.hash || '',
+          level: data.level || 'high',
+          tags: data.tags || [],
+          imports: [],
+          strings: [{ 
+            id: '1', 
+            name: '$s1', 
+            value: 'suspicious_string_here', 
+            type: 'text' as const, 
+            modifiers: { wide: true, ascii: true, nocase: true, fullword: false, private: false } 
+          }],
+          condition: 'any of them',
+          customCondition: false
+        });
         setActiveTab('builder');
       }
     } catch (err) {
