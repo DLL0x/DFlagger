@@ -14,11 +14,8 @@ import {
   Eye,
   Zap,
   Download,
-  TerminalSquare,
   Binary,
   Skull,
-  Moon,
-  Sun,
   HelpCircle,
   BookOpen,
   ShieldAlert
@@ -3373,20 +3370,10 @@ export default function LivingOffTheLandArsenal() {
   const [activeTab, setActiveTab] = useState<'lolbas' | 'gtfo' | 'drivers' | 'globs'>('lolbas');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedItem, setSelectedItem] = useState<any>(null);
-  const [darkMode, setDarkMode] = useState(true);
   const [copiedText, setCopiedText] = useState<string | null>(null);
   const [filterCategory, setFilterCategory] = useState('all');
   const [filterMitre, setFilterMitre] = useState('');
   const [showHelp, setShowHelp] = useState(false);
-
-  // Initialize theme
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [darkMode]);
 
   // Copy to clipboard handler
   const handleCopy = (text: string) => {
@@ -4008,209 +3995,173 @@ export default function LivingOffTheLandArsenal() {
   };
 
   return (
-    <div className={`min-h-screen ${darkMode ? 'dark bg-slate-950' : 'bg-slate-100'} transition-colors duration-200`}>
+    <div className="p-6 space-y-6 max-w-7xl mx-auto">
       {/* Header */}
-      <header className={`${darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} border-b sticky top-0 z-40`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <TerminalSquare className={`w-8 h-8 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`} />
-                <div>
-                  <h1 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-slate-900'}`}>
-                    Living Off The Land <span className="text-xs px-2 py-1 rounded bg-green-500/20 text-green-400 border border-green-500/30">OFFLINE</span>
-                  </h1>
-                  <p className={`text-xs ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                    Complete embedded database of LOLBAS, GTFOBins, LOLDrivers & LOLGlobs
-                  </p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setShowHelp(true)}
-                className={`p-2 rounded-lg transition-colors ${darkMode ? 'hover:bg-slate-800 text-slate-400' : 'hover:bg-slate-100 text-slate-600'}`}
-                title="Help"
-              >
-                <HelpCircle className="w-5 h-5" />
-              </button>
-              <button
-                onClick={exportData}
-                className={`p-2 rounded-lg transition-colors ${darkMode ? 'hover:bg-slate-800 text-slate-400' : 'hover:bg-slate-100 text-slate-600'}`}
-                title="Export JSON Backup"
-              >
-                <Download className="w-5 h-5" />
-              </button>
-              <button
-                onClick={() => setDarkMode(!darkMode)}
-                className={`p-2 rounded-lg transition-colors ${darkMode ? 'hover:bg-slate-800 text-slate-400' : 'hover:bg-slate-100 text-slate-600'}`}
-                title="Toggle Theme"
-              >
-                {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-              </button>
-            </div>
-          </div>
-
-          {/* Navigation Tabs */}
-          <div className="flex gap-1 mt-4 overflow-x-auto">
-            {[ 
-              { id: 'lolbas', label: 'LOLBAS', icon: Terminal, count: LOLBAS_DATA.length, color: 'blue' },
-              { id: 'gtfo', label: 'GTFOBins', icon: Code, count: GTFOBINS_DATA.length, color: 'yellow' },
-              { id: 'drivers', label: 'LOLDrivers', icon: HardDrive, count: DRIVERS_DATA.length, color: 'red' },
-              { id: 'globs', label: 'LOLGlobs', icon: FileText, count: GLOBS_DATA.length, color: 'green' }
-            ].map(({ id, label, icon: Icon, count, color }) => (
-              <button
-                key={id}
-                onClick={() => {
-                  setActiveTab(id as any);
-                  setFilterCategory('all');
-                  setFilterMitre('');
-                }}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                  activeTab === id 
-                    ? darkMode 
-                      ? `bg-${color}-500/20 text-${color}-400 border border-${color}-500/30` 
-                      : `bg-${color}-100 text-${color}-700 border border-${color}-300`
-                    : darkMode
-                      ? 'text-slate-400 hover:bg-slate-800 hover:text-slate-300'
-                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                }`}
-              >
-                <Icon className="w-4 h-4" />
-                <span className="hidden sm:inline">{label}</span>
-                <span className={`text-xs px-1.5 py-0.5 rounded-full ${darkMode ? 'bg-slate-800' : 'bg-slate-200'}`}>
-                  {count}
-                </span>
-              </button>
-            ))}
-          </div>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+            Living Off The Land Arsenal
+          </h1>
+          <p className="text-gray-400 text-sm mt-1">
+            Complete offline database of LOLBAS, GTFOBins, LOLDrivers & LOLGlobs
+            <span className="ml-2 text-xs px-2 py-0.5 rounded bg-green-500/20 text-green-400 border border-green-500/30">OFFLINE</span>
+          </p>
         </div>
-      </header>
+        
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowHelp(true)}
+            className="px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 bg-white/5 border border-white/10 hover:bg-white/10"
+          >
+            <HelpCircle className="w-4 h-4" />
+            Help
+          </button>
+          <button
+            onClick={exportData}
+            className="px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 bg-white/5 border border-white/10 hover:bg-white/10"
+          >
+            <Download className="w-4 h-4" />
+            Export
+          </button>
+        </div>
+      </div>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Search and Filters */}
-        <div className={`mb-6 p-4 rounded-xl border ${darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} shadow-sm`}>
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1 relative">
-              <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${darkMode ? 'text-slate-500' : 'text-slate-400'}`} />
+      {/* Navigation Tabs */}
+      <div className="flex gap-2 border-b border-white/10">
+        {[
+          { id: 'lolbas', label: 'LOLBAS', icon: Terminal, count: LOLBAS_DATA.length },
+          { id: 'gtfo', label: 'GTFOBins', icon: Code, count: GTFOBINS_DATA.length },
+          { id: 'drivers', label: 'LOLDrivers', icon: HardDrive, count: DRIVERS_DATA.length },
+          { id: 'globs', label: 'LOLGlobs', icon: FileText, count: GLOBS_DATA.length }
+        ].map(({ id, label, icon: Icon, count }) => (
+          <button
+            key={id}
+            onClick={() => {
+              setActiveTab(id as any);
+              setFilterCategory('all');
+              setFilterMitre('');
+            }}
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
+              activeTab === id 
+                ? 'border-cyan-400 text-cyan-400' 
+                : 'border-transparent text-gray-400 hover:text-gray-200'
+            }`}
+          >
+            <Icon className="w-4 h-4" />
+            <span>{label}</span>
+            <span className="text-xs px-1.5 py-0.5 rounded-full bg-white/10">
+              {count}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      {/* Search and Filters - Glass Card Style */}
+      <div className="glass-card p-4">
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+            <input
+              type="text"
+              placeholder={`Search ${activeTab === 'lolbas' ? 'Windows binaries, commands...' : activeTab === 'gtfo' ? 'Unix binaries, functions...' : activeTab === 'drivers' ? 'Driver names, CVEs, hashes...' : 'File extensions, handlers...'}`}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 bg-black/40 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-cyan-400 focus:outline-none"
+            />
+          </div>
+          
+          <div className="flex gap-2">
+            <select
+              value={filterCategory}
+              onChange={(e) => setFilterCategory(e.target.value)}
+              className="px-3 py-2 bg-black/40 border border-white/10 rounded-lg text-sm text-gray-300 outline-none focus:border-cyan-400"
+            >
+              <option value="all">All Categories</option>
+              {getCategories().map(cat => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+              {activeTab === 'drivers' && <option value="verified">Verified Only</option>}
+            </select>
+
+            {(activeTab === 'lolbas' || activeTab === 'globs') && (
               <input
                 type="text"
-                placeholder={`Search ${activeTab === 'lolbas' ? 'Windows binaries, commands...' : activeTab === 'gtfo' ? 'Unix binaries, functions...' : activeTab === 'drivers' ? 'Driver names, CVEs, hashes...' : 'File extensions, handlers...'}`}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className={`w-full pl-10 pr-4 py-2 rounded-lg border ${
-                  darkMode 
-                    ? 'bg-slate-950 border-slate-800 text-white placeholder-slate-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500' 
-                    : 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500'
-                } outline-none transition-all`}
+                placeholder="MITRE ATT&CK..."
+                value={filterMitre}
+                onChange={(e) => setFilterMitre(e.target.value)}
+                className="px-3 py-2 bg-black/40 border border-white/10 rounded-lg text-sm text-gray-300 placeholder-gray-500 outline-none focus:border-cyan-400 w-32"
               />
-            </div>
-            
-            <div className="flex gap-2">
-              <select
-                value={filterCategory}
-                onChange={(e) => setFilterCategory(e.target.value)}
-                className={`px-3 py-2 rounded-lg border text-sm ${
-                  darkMode 
-                    ? 'bg-slate-950 border-slate-800 text-slate-300' 
-                    : 'bg-slate-50 border-slate-300 text-slate-700'
-                } outline-none focus:border-blue-500`}
-              >
-                <option value="all">All Categories</option>
-                {getCategories().map(cat => (
-                  <option key={cat} value={cat}>{cat}</option>
-                ))}
-                {activeTab === 'drivers' && <option value="verified">Verified Only</option>}
-              </select>
-
-              {(activeTab === 'lolbas' || activeTab === 'globs') && (
-                <input
-                  type="text"
-                  placeholder="MITRE ATT&CK..."
-                  value={filterMitre}
-                  onChange={(e) => setFilterMitre(e.target.value)}
-                  className={`px-3 py-2 rounded-lg border text-sm w-32 ${
-                    darkMode 
-                      ? 'bg-slate-950 border-slate-800 text-slate-300 placeholder-slate-500' 
-                      : 'bg-slate-50 border-slate-300 text-slate-700 placeholder-slate-400'
-                  } outline-none focus:border-blue-500`}
-                />
-              )}
-            </div>
-          </div>
-
-          {/* Stats Bar */}
-          <div className={`mt-4 pt-4 border-t ${darkMode ? 'border-slate-800' : 'border-slate-200'} flex items-center gap-4 text-sm`}>
-            <span className={darkMode ? 'text-slate-400' : 'text-slate-600'}>
-              Showing {
-                activeTab === 'lolbas' ? filteredLOLBas.length :
-                activeTab === 'gtfo' ? filteredGTFO.length :
-                activeTab === 'drivers' ? filteredDrivers.length :
-                filteredGlobs.length
-              } of {
-                activeTab === 'lolbas' ? LOLBAS_DATA.length :
-                activeTab === 'gtfo' ? GTFOBINS_DATA.length :
-                activeTab === 'drivers' ? DRIVERS_DATA.length :
-                GLOBS_DATA.length
-              } entries
-            </span>
-            {searchQuery && (
-              <button 
-                onClick={() => setSearchQuery('')}
-                className="text-xs px-2 py-1 rounded bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors"
-              >
-                Clear search
-              </button>
             )}
           </div>
         </div>
 
+        {/* Stats Bar */}
+        <div className="mt-4 pt-4 border-t border-white/10 flex items-center gap-4 text-sm">
+          <span className="text-gray-400">
+            Showing {
+              activeTab === 'lolbas' ? filteredLOLBas.length :
+              activeTab === 'gtfo' ? filteredGTFO.length :
+              activeTab === 'drivers' ? filteredDrivers.length :
+              filteredGlobs.length
+            } of {
+              activeTab === 'lolbas' ? LOLBAS_DATA.length :
+              activeTab === 'gtfo' ? GTFOBINS_DATA.length :
+              activeTab === 'drivers' ? DRIVERS_DATA.length :
+              GLOBS_DATA.length
+            } entries
+          </span>
+          {searchQuery && (
+            <button 
+              onClick={() => setSearchQuery('')}
+              className="text-xs px-2 py-1 rounded bg-white/10 text-gray-400 hover:bg-white/20 transition-colors"
+            >
+              Clear search
+            </button>
+          )}
+        </div>
+      </div>
+
         {/* Content Grid */}
-        <div className="grid gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {activeTab === 'lolbas' && filteredLOLBas.map((item) => (
             <div 
               key={item.name}
               onClick={() => setSelectedItem(item)}
-              className={`group p-4 rounded-xl border cursor-pointer transition-all hover:shadow-md ${
-                darkMode 
-                  ? 'bg-slate-900 border-slate-800 hover:border-blue-500/50 hover:bg-slate-800/50' 
-                  : 'bg-white border-slate-200 hover:border-blue-300 hover:bg-blue-50/30'
-              }`}
+              className="glass-card p-5 cursor-pointer transition-all hover:-translate-y-1 hover:border-cyan-400/30 group"
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className={`font-mono text-lg font-semibold ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="p-2 rounded-lg bg-blue-500/10">
+                      <Terminal className="w-5 h-5 text-blue-400" />
+                    </div>
+                    <h3 className="font-mono text-lg font-semibold text-blue-400">
                       {item.name}
                     </h3>
                     {item.category && (
-                      <span className={`text-xs px-2 py-0.5 rounded border ${
-                        darkMode ? 'bg-slate-800 border-slate-700 text-slate-400' : 'bg-slate-100 border-slate-300 text-slate-600'
-                      }`}>
+                      <span className="text-xs px-2 py-0.5 rounded border bg-white/5 border-white/10 text-gray-400">
                         {item.category}
                       </span>
                     )}
                   </div>
-                  <p className={`text-sm mb-2 ${darkMode ? 'text-slate-400' : 'text-slate-600'} line-clamp-2`}>
+                  <p className="text-sm mb-3 text-gray-400 line-clamp-2">
                     {item.description}
                   </p>
                   <div className="flex items-center gap-3 text-xs">
-                    <span className={darkMode ? 'text-slate-500' : 'text-slate-500'}>
-                      <span className={darkMode ? 'text-slate-400' : 'text-slate-700'}>{item.commands?.length || 0}</span> commands
+                    <span className="text-gray-500">
+                      <span className="text-gray-400">{item.commands?.length || 0}</span> commands
                     </span>
-                    <span className={darkMode ? 'text-slate-600' : 'text-slate-400'}>•</span>
-                    <span className={darkMode ? 'text-slate-500' : 'text-slate-500'}>
+                    <span className="text-gray-600">•</span>
+                    <span className="text-gray-500">
                       {item.detection?.length || 0} detection rules
                     </span>
                   </div>
                 </div>
-                <ChevronRight className={`w-5 h-5 mt-1 ${darkMode ? 'text-slate-600 group-hover:text-slate-400' : 'text-slate-400 group-hover:text-slate-600'} transition-colors`} />
+                <ChevronRight className="w-5 h-5 mt-1 text-gray-600 group-hover:text-gray-400 transition-colors" />
               </div>
               {item.commands && item.commands[0] && (
-                <div className={`mt-3 pt-3 border-t ${darkMode ? 'border-slate-800' : 'border-slate-100'}`}>
-                  <code className={`text-xs ${darkMode ? 'text-slate-500' : 'text-slate-500'} font-mono truncate block`}>
+                <div className="mt-3 pt-3 border-t border-white/10">
+                  <code className="text-xs text-gray-500 font-mono truncate block">
                     {item.commands[0].command.substring(0, 60)}{item.commands[0].command.length > 60 ? '...' : ''}
                   </code>
                 </div>
@@ -4222,36 +4173,35 @@ export default function LivingOffTheLandArsenal() {
             <div 
               key={item.name}
               onClick={() => setSelectedItem(item)}
-              className={`group p-4 rounded-xl border cursor-pointer transition-all hover:shadow-md ${
-                darkMode 
-                  ? 'bg-slate-900 border-slate-800 hover:border-yellow-500/50 hover:bg-slate-800/50' 
-                  : 'bg-white border-slate-200 hover:border-yellow-300 hover:bg-yellow-50/30'
-              }`}
+              className="glass-card p-5 cursor-pointer transition-all hover:-translate-y-1 hover:border-yellow-400/30 group"
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1 min-w-0">
-                  <h3 className={`font-mono text-lg font-semibold ${darkMode ? 'text-yellow-400' : 'text-yellow-600'} mb-1`}>
-                    {item.name}
-                  </h3>
-                  <p className={`text-sm mb-3 ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="p-2 rounded-lg bg-yellow-500/10">
+                      <Code className="w-5 h-5 text-yellow-400" />
+                    </div>
+                    <h3 className="font-mono text-lg font-semibold text-yellow-400">
+                      {item.name}
+                    </h3>
+                  </div>
+                  <p className="text-sm mb-3 text-gray-400">
                     {item.description}
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {item.functions.slice(0, 4).map((func, idx) => (
-                      <span key={idx} className={`text-xs px-2 py-1 rounded border ${
-                        darkMode ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' : 'bg-yellow-100 text-yellow-700 border-yellow-300'
-                      }`}>
+                      <span key={idx} className="text-xs px-2 py-1 rounded border bg-yellow-500/10 text-yellow-400 border-yellow-500/20">
                         {func}
                       </span>
                     ))}
                     {item.functions.length > 4 && (
-                      <span className={`text-xs px-2 py-1 rounded ${darkMode ? 'bg-slate-800 text-slate-400' : 'bg-slate-100 text-slate-600'}`}>
+                      <span className="text-xs px-2 py-1 rounded bg-white/10 text-gray-400">
                         +{item.functions.length - 4} more
                       </span>
                     )}
                   </div>
                 </div>
-                <ChevronRight className={`w-5 h-5 mt-1 ${darkMode ? 'text-slate-600 group-hover:text-slate-400' : 'text-slate-400 group-hover:text-slate-600'} transition-colors`} />
+                <ChevronRight className="w-5 h-5 mt-1 text-gray-600 group-hover:text-gray-400 transition-colors" />
               </div>
             </div>
           ))}
@@ -4260,16 +4210,15 @@ export default function LivingOffTheLandArsenal() {
             <div 
               key={item.Id}
               onClick={() => setSelectedItem(item)}
-              className={`group p-4 rounded-xl border cursor-pointer transition-all hover:shadow-md ${
-                darkMode 
-                  ? 'bg-slate-900 border-slate-800 hover:border-red-500/50 hover:bg-slate-800/50' 
-                  : 'bg-white border-slate-200 hover:border-red-300 hover:bg-red-50/30'
-              }`}
+              className="glass-card p-5 cursor-pointer transition-all hover:-translate-y-1 hover:border-red-400/30 group"
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className={`font-mono text-lg font-semibold ${darkMode ? 'text-red-400' : 'text-red-600'}`}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="p-2 rounded-lg bg-red-500/10">
+                      <HardDrive className="w-5 h-5 text-red-400" />
+                    </div>
+                    <h3 className="font-mono text-lg font-semibold text-red-400">
                       {item.Id}
                     </h3>
                     <span className={`text-xs px-2 py-0.5 rounded border ${
@@ -4285,29 +4234,27 @@ export default function LivingOffTheLandArsenal() {
                       </span>
                     )}
                   </div>
-                  <p className={`text-sm mb-2 ${darkMode ? 'text-slate-400' : 'text-slate-600'} line-clamp-2`}>
+                  <p className="text-sm mb-3 text-gray-400 line-clamp-2">
                     {item.Description}
                   </p>
-                  <div className="flex flex-wrap gap-2 mb-2">
+                  <div className="flex flex-wrap gap-2 mb-3">
                     {item.CVE?.slice(0, 2).map((cve, idx) => (
-                      <span key={idx} className={`text-xs px-2 py-0.5 rounded font-mono ${
-                        darkMode ? 'bg-slate-800 text-amber-400' : 'bg-amber-100 text-amber-700'
-                      }`}>
+                      <span key={idx} className="text-xs px-2 py-0.5 rounded font-mono bg-white/10 text-amber-400">
                         {cve}
                       </span>
                     ))}
                   </div>
                   <div className="flex items-center gap-3 text-xs">
-                    <span className={darkMode ? 'text-slate-500' : 'text-slate-500'}>
-                      <span className={darkMode ? 'text-slate-400' : 'text-slate-700'}>{item.KnownVulnerableSamples?.length || 0}</span> samples
+                    <span className="text-gray-500">
+                      <span className="text-gray-400">{item.KnownVulnerableSamples?.length || 0}</span> samples
                     </span>
-                    <span className={darkMode ? 'text-slate-600' : 'text-slate-400'}>•</span>
-                    <span className={darkMode ? 'text-slate-500' : 'text-slate-500'}>
+                    <span className="text-gray-600">•</span>
+                    <span className="text-gray-500">
                       {item.Tags?.slice(0, 3).join(', ')}
                     </span>
                   </div>
                 </div>
-                <ChevronRight className={`w-5 h-5 mt-1 ${darkMode ? 'text-slate-600 group-hover:text-slate-400' : 'text-slate-400 group-hover:text-slate-600'} transition-colors`} />
+                <ChevronRight className="w-5 h-5 mt-1 text-gray-600 group-hover:text-gray-400 transition-colors" />
               </div>
             </div>
           ))}
@@ -4316,16 +4263,15 @@ export default function LivingOffTheLandArsenal() {
             <div 
               key={item.id}
               onClick={() => setSelectedItem(item)}
-              className={`group p-4 rounded-xl border cursor-pointer transition-all hover:shadow-md ${
-                darkMode 
-                  ? 'bg-slate-900 border-slate-800 hover:border-green-500/50 hover:bg-slate-800/50' 
-                  : 'bg-white border-slate-200 hover:border-green-300 hover:bg-green-50/30'
-              }`}
+              className="glass-card p-5 cursor-pointer transition-all hover:-translate-y-1 hover:border-green-400/30 group"
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className={`font-mono text-lg font-semibold ${darkMode ? 'text-green-400' : 'text-green-600'}`}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="p-2 rounded-lg bg-green-500/10">
+                      <FileText className="w-5 h-5 text-green-400" />
+                    </div>
+                    <h3 className="font-mono text-lg font-semibold text-green-400">
                       {item.extension}
                     </h3>
                     <span className={`text-xs px-2 py-0.5 rounded border ${
@@ -4337,25 +4283,23 @@ export default function LivingOffTheLandArsenal() {
                       {item.risk} Risk
                     </span>
                   </div>
-                  <p className={`text-sm mb-2 ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                  <p className="text-sm mb-3 text-gray-400">
                     {item.description}
                   </p>
-                  <div className="flex flex-wrap gap-2 mb-2">
+                  <div className="flex flex-wrap gap-2 mb-3">
                     {item.mitre?.slice(0, 3).map((tech, idx) => (
-                      <span key={idx} className={`text-xs px-2 py-0.5 rounded font-mono ${
-                        darkMode ? 'bg-slate-800 text-amber-400' : 'bg-amber-100 text-amber-700'
-                      }`}>
+                      <span key={idx} className="text-xs px-2 py-0.5 rounded font-mono bg-white/10 text-amber-400">
                         {tech}
                       </span>
                     ))}
                   </div>
                   <div className="flex items-center gap-2 text-xs">
-                    <span className={darkMode ? 'text-slate-500' : 'text-slate-500'}>
-                      Handler: <span className={darkMode ? 'text-slate-300' : 'text-slate-700'}>{item.handler || 'N/A'}</span>
+                    <span className="text-gray-500">
+                      Handler: <span className="text-gray-300">{item.handler || 'N/A'}</span>
                     </span>
                   </div>
                 </div>
-                <ChevronRight className={`w-5 h-5 mt-1 ${darkMode ? 'text-slate-600 group-hover:text-slate-400' : 'text-slate-400 group-hover:text-slate-600'} transition-colors`} />
+                <ChevronRight className="w-5 h-5 mt-1 text-gray-600 group-hover:text-gray-400 transition-colors" />
               </div>
             </div>
           ))}
@@ -4365,27 +4309,24 @@ export default function LivingOffTheLandArsenal() {
            (activeTab === 'gtfo' && filteredGTFO.length === 0) ||
            (activeTab === 'drivers' && filteredDrivers.length === 0) ||
            (activeTab === 'globs' && filteredGlobs.length === 0) ? (
-            <div className={`text-center py-12 ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>
+            <div className="col-span-full text-center py-12 text-gray-500">
               <Search className="w-12 h-12 mx-auto mb-4 opacity-50" />
               <p className="text-lg font-medium">No results found</p>
               <p className="text-sm">Try adjusting your search or filters</p>
             </div>
           ) : null}
         </div>
-      </main>
 
-      {/* Footer */}
-      <footer className={`border-t mt-12 ${darkMode ? 'bg-slate-900 border-slate-800 text-slate-500' : 'bg-white border-slate-200 text-slate-500'} py-6`}>
-        <div className="max-w-7xl mx-auto px-4 text-center text-sm">
-          <p className="mb-2">
-            Offline Living Off The Land Arsenal • Embedded data for airgapped environments
-          </p>
-          <p className="text-xs opacity-75">
-            References: LOLBAS Project ({LOLBAS_DATA.length} entries) • GTFOBins ({GTFOBINS_DATA.length} entries) • 
-            LOLDrivers ({DRIVERS_DATA.length} entries) • LOLGlobs ({GLOBS_DATA.length} entries)
-          </p>
-        </div>
-      </footer>
+      {/* Stats Summary */}
+      <div className="glass-card p-4 text-center text-sm text-gray-400">
+        <p>
+          Offline Living Off The Land Arsenal • 
+          LOLBAS: {LOLBAS_DATA.length} • 
+          GTFOBins: {GTFOBINS_DATA.length} • 
+          LOLDrivers: {DRIVERS_DATA.length} • 
+          LOLGlobs: {GLOBS_DATA.length}
+        </p>
+      </div>
 
       {/* Modals */}
       {renderDetailModal()}
