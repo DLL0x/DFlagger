@@ -3529,7 +3529,39 @@ ${glob.detection.join('\n')}`;
   };
 
   const handleCreateFromLOLGlob = (glob: any) => {
-    const query = generateLOLGlobDetection(glob, selectedPlatform);
+    const ext = glob.extension.replace('.', '');
+    // Generate queries for all platforms
+    const queries: { [key: string]: string } = {
+      splunk: `index=windows (EventCode=4688 OR EventCode=1) 
+| search CommandLine="*.${ext}*" 
+| eval RiskLevel="${glob.risk}" 
+| stats count by Computer, User, Image, CommandLine 
+| where count > 0`,
+      qradar: `SELECT * FROM events 
+WHERE LOGSOURCENAME(logsourceid) ILIKE '%Windows%' 
+AND CommandLine ILIKE '%.${ext}%' 
+GROUP BY sourceip, username, Image`,
+      logrhythm: `<MPE_Rule>
+  <Name>${ext.toUpperCase()}_Execution</Name>
+  <Classification>${glob.risk} Risk</Classification>
+  <CommonEvent>${ext.toUpperCase()} File Execution</CommonEvent>
+  <Conditions>
+    <Condition>
+      <Field>CommandLine</Field>
+      <Operator>Contains</Operator>
+      <Value>.${ext}</Value>
+    </Condition>
+  </Conditions>
+</MPE_Rule>`,
+      arcsight: `CEF:0|ArcSight|Logger|1.0|${ext.toUpperCase()}-EXEC|${ext.toUpperCase()} Execution|${glob.risk === 'Critical' ? '10' : glob.risk === 'High' ? '7' : '5'}| 
+fileExtension=.${ext}`,
+      cortex: `dataset = xdr_data 
+| filter event_type = ENUM.PROCESS_START 
+| filter action_process_image_command_line contains ".${ext}" 
+| fields action_process_image_command_line, action_process_image_name, actor_primary_username`,
+      fidelis: `entity_type=process AND command_line contains ".${ext}"`
+    };
+    
     setFormData({
       name: `LOLGlob Detection - ${glob.extension} Files`,
       description: `Detects execution of ${glob.extension} files: ${glob.description}`,
@@ -3538,7 +3570,8 @@ ${glob.detection.join('\n')}`;
       status: 'draft',
       platform: selectedPlatform,
       dataSource: 'Windows Events',
-      query: query,
+      query: queries[selectedPlatform],
+      queries: queries,
       tags: ['lolglob', 'file-execution', 'living-off-the-land', glob.extension.replace('.', '')],
       mitreTechniques: glob.mitre,
       references: ['https://0xv1n.github.io/LOLGlobs/', 'https://lolbas-project.github.io/']
@@ -3548,32 +3581,35 @@ ${glob.detection.join('\n')}`;
   };
 
   const handleCreateFromLOLBAS = (item: any) => {
-    let query = '';
-    switch(selectedPlatform) {
-      case 'splunk':
-        query = `index=windows (EventCode=4688 OR EventCode=1) 
+    // Generate queries for all platforms
+    const queries: { [key: string]: string } = {
+      splunk: `index=windows (EventCode=4688 OR EventCode=1) 
 | search Image="*${item.name}" OR CommandLine="*${item.name}*" 
 | stats count by Computer, User, Image, CommandLine 
-| where count > 0`;
-        break;
-      case 'qradar':
-        query = `SELECT * FROM events 
+| where count > 0`,
+      qradar: `SELECT * FROM events 
 WHERE (Image ILIKE '%${item.name}%' OR CommandLine ILIKE '%${item.name}%')
-GROUP BY sourceip, username, Image`;
-        break;
-      case 'cortex':
-        query = `dataset = xdr_data 
+GROUP BY sourceip, username, Image`,
+      logrhythm: `<MPE_Rule>
+  <Name>LOLBAS_${item.name.replace('.exe', '')}_Execution</Name>
+  <Classification>Defense Evasion</Classification>
+  <CommonEvent>LOLBAS Binary Execution</CommonEvent>
+  <Conditions>
+    <Condition>
+      <Field>Image</Field>
+      <Operator>Contains</Operator>
+      <Value>${item.name}</Value>
+    </Condition>
+  </Conditions>
+</MPE_Rule>`,
+      arcsight: `CEF:0|Microsoft|Windows|1.0|LOLBAS-${item.name.toUpperCase().replace('.EXE', '')}|LOLBAS ${item.name} Execution|${item.severity === 'critical' ? '10' : item.severity === 'high' ? '7' : '5'}| 
+image=${item.name}`,
+      cortex: `dataset = xdr_data 
 | filter event_type = ENUM.PROCESS_START 
 | filter action_process_image_name contains "${item.name}" or action_process_image_command_line contains "${item.name}"
-| fields action_process_image_command_line, action_process_image_name, actor_primary_username`;
-        break;
-      default:
-        query = `# Detection for ${item.name}
-# Description: ${item.description}
-# MITRE: ${item.mitre.join(', ')}
-
-[INSERT PLATFORM QUERY FOR ${item.name}]`;
-    }
+| fields action_process_image_command_line, action_process_image_name, actor_primary_username`,
+      fidelis: `entity_type=process AND (image contains "${item.name}" OR command_line contains "${item.name}")`
+    };
     
     setFormData({
       name: `LOLBAS Detection - ${item.name}`,
@@ -3583,7 +3619,8 @@ GROUP BY sourceip, username, Image`;
       status: 'draft',
       platform: selectedPlatform,
       dataSource: 'Windows Events',
-      query: query,
+      query: queries[selectedPlatform],
+      queries: queries,
       tags: ['lolbas', 'living-off-the-land', item.name.toLowerCase().replace('.exe', '')],
       mitreTechniques: item.mitre,
       references: ['https://lolbas-project.github.io/']
@@ -3593,32 +3630,35 @@ GROUP BY sourceip, username, Image`;
   };
 
   const handleCreateFromGTFOBin = (item: any) => {
-    let query = '';
-    switch(selectedPlatform) {
-      case 'splunk':
-        query = `index=linux sourcetype=linux:audit OR sourcetype=linux:secure 
+    // Generate queries for all platforms
+    const queries: { [key: string]: string } = {
+      splunk: `index=linux sourcetype=linux:audit OR sourcetype=linux:secure 
 | search CommandLine="*${item.name}*" 
 | stats count by host, user, CommandLine 
-| where count > 0`;
-        break;
-      case 'qradar':
-        query = `SELECT * FROM events 
+| where count > 0`,
+      qradar: `SELECT * FROM events 
 WHERE CommandLine ILIKE '%${item.name}%'
-GROUP BY sourceip, username`;
-        break;
-      case 'cortex':
-        query = `dataset = xdr_data 
+GROUP BY sourceip, username`,
+      logrhythm: `<MPE_Rule>
+  <Name>GTFOBins_${item.name}_Execution</Name>
+  <Classification>Defense Evasion</Classification>
+  <CommonEvent>GTFOBins Binary Execution</CommonEvent>
+  <Conditions>
+    <Condition>
+      <Field>CommandLine</Field>
+      <Operator>Contains</Operator>
+      <Value>${item.name}</Value>
+    </Condition>
+  </Conditions>
+</MPE_Rule>`,
+      arcsight: `CEF:0|Linux|Audit|1.0|GTFOBINS-${item.name.toUpperCase()}|GTFOBins ${item.name} Execution|${item.severity === 'critical' ? '10' : item.severity === 'high' ? '7' : '5'}| 
+commandLine=${item.name}`,
+      cortex: `dataset = xdr_data 
 | filter event_type = ENUM.PROCESS_START 
 | filter action_process_image_command_line contains "${item.name}"
-| fields action_process_image_command_line, action_process_image_name, actor_primary_username`;
-        break;
-      default:
-        query = `# Detection for ${item.name}
-# Description: ${item.description}
-# MITRE: ${item.mitre.join(', ')}
-
-[INSERT PLATFORM QUERY FOR ${item.name}]`;
-    }
+| fields action_process_image_command_line, action_process_image_name, actor_primary_username`,
+      fidelis: `entity_type=process AND command_line contains "${item.name}"`
+    };
     
     setFormData({
       name: `GTFOBins Detection - ${item.name}`,
@@ -3628,7 +3668,8 @@ GROUP BY sourceip, username`;
       status: 'draft',
       platform: selectedPlatform,
       dataSource: 'Linux Audit',
-      query: query,
+      query: queries[selectedPlatform],
+      queries: queries,
       tags: ['gtfobins', 'living-off-the-land', 'unix', item.name.toLowerCase()],
       mitreTechniques: item.mitre,
       references: ['https://gtfobins.github.io/']
@@ -3638,34 +3679,36 @@ GROUP BY sourceip, username`;
   };
 
   const handleCreateFromLOLDriver = (item: any) => {
-    let query = '';
-    switch(selectedPlatform) {
-      case 'splunk':
-        query = `index=windows (EventCode=4688 OR EventCode=1 OR EventCode=6) 
+    // Generate queries for all platforms
+    const queries: { [key: string]: string } = {
+      splunk: `index=windows (EventCode=4688 OR EventCode=1 OR EventCode=6) 
 | search Image="*${item.name}*" OR CommandLine="*${item.name}*" 
 | eval Severity="${item.severity}"
 | stats count by Computer, User, Image, CommandLine 
-| where count > 0`;
-        break;
-      case 'qradar':
-        query = `SELECT * FROM events 
+| where count > 0`,
+      qradar: `SELECT * FROM events 
 WHERE (Image ILIKE '%${item.name}%' OR CommandLine ILIKE '%${item.name}%')
-GROUP BY sourceip, username, Image`;
-        break;
-      case 'cortex':
-        query = `dataset = xdr_data 
+GROUP BY sourceip, username, Image`,
+      logrhythm: `<MPE_Rule>
+  <Name>LOLDriver_${item.name.replace('.sys', '')}_Load</Name>
+  <Classification>Privilege Escalation</Classification>
+  <CommonEvent>Vulnerable Driver Load</CommonEvent>
+  <Conditions>
+    <Condition>
+      <Field>Image</Field>
+      <Operator>Contains</Operator>
+      <Value>${item.name}</Value>
+    </Condition>
+  </Conditions>
+</MPE_Rule>`,
+      arcsight: `CEF:0|Microsoft|Windows|1.0|LOLDRIVER-${item.name.toUpperCase().replace('.SYS', '')}|LOLDriver ${item.name} Load|${item.severity === 'critical' ? '10' : '8'}| 
+image=${item.name} cve=${item.cve.join(',')}`,
+      cortex: `dataset = xdr_data 
 | filter event_type = ENUM.PROCESS_START OR event_type = ENUM.DRIVER_LOAD
 | filter action_process_image_name contains "${item.name}" or action_process_image_command_line contains "${item.name}"
-| fields action_process_image_command_line, action_process_image_name, actor_primary_username`;
-        break;
-      default:
-        query = `# Detection for ${item.name}
-# Description: ${item.description}
-# CVE: ${item.cve.join(', ')}
-# MITRE: ${item.mitre.join(', ')}
-
-[INSERT PLATFORM QUERY FOR ${item.name}]`;
-    }
+| fields action_process_image_command_line, action_process_image_name, actor_primary_username`,
+      fidelis: `entity_type=process AND (image contains "${item.name}" OR command_line contains "${item.name}")`
+    };
     
     setFormData({
       name: `LOLDriver Detection - ${item.name}`,
@@ -3675,7 +3718,8 @@ GROUP BY sourceip, username, Image`;
       status: 'draft',
       platform: selectedPlatform,
       dataSource: 'Windows Events',
-      query: query,
+      query: queries[selectedPlatform],
+      queries: queries,
       tags: ['loldrivers', 'vulnerable-driver', 'privilege-escalation', item.name.toLowerCase().replace('.sys', '')],
       mitreTechniques: item.mitre,
       references: ['https://www.loldrivers.io/']
@@ -3685,34 +3729,37 @@ GROUP BY sourceip, username, Image`;
   };
 
   const handleCreateFromAtomic = (test: AtomicTest) => {
-    // Generate detection query based on atomic test
+    // Generate detection queries for all platforms
     const indicators = test.detectionIndicators.join('" OR "');
-    let query = '';
-
-    switch(selectedPlatform) {
-      case 'splunk':
-        query = `index=windows (EventCode=4688 OR EventCode=1 OR EventCode=4103 OR EventCode=4104)
+    const indicatorList = test.detectionIndicators.map(i => i.replace(/"/g, '&quot;')).join(', ');
+    
+    const queries: { [key: string]: string } = {
+      splunk: `index=windows (EventCode=4688 OR EventCode=1 OR EventCode=4103 OR EventCode=4104)
 | search (CommandLine="*${test.detectionIndicators[0]}*"${test.detectionIndicators.slice(1).map(i => ` OR CommandLine="*${i}*"`).join('')})
 | stats count by Computer, User, CommandLine, ParentImage
-| where count > 0`;
-        break;
-      case 'qradar':
-        query = `SELECT * FROM events
+| where count > 0`,
+      qradar: `SELECT * FROM events
 WHERE (Payload ILIKE '%${test.detectionIndicators[0]}%'${test.detectionIndicators.slice(1).map(i => ` OR Payload ILIKE '%${i}%'`).join('')})
-GROUP BY sourceip, username, Image`;
-        break;
-      case 'cortex':
-        query = `dataset = xdr_data
+GROUP BY sourceip, username, Image`,
+      logrhythm: `<MPE_Rule>
+  <Name>Atomic_Test_${test.id.replace(/\./g, '_')}</Name>
+  <Classification>${test.tactic}</Classification>
+  <CommonEvent>Atomic Red Team - ${test.name}</CommonEvent>
+  <Conditions>
+    <Condition>
+      <Field>CommandLine</Field>
+      <Operator>Regex</Operator>
+      <Value>(${test.detectionIndicators.join('|')})</Value>
+    </Condition>
+  </Conditions>
+</MPE_Rule>`,
+      arcsight: `CEF:0|AtomicRedTeam|${test.technique}|1.0|${test.id.toUpperCase().replace(/\./g, '-')}|${test.name}|${test.impact === 'critical' ? '10' : test.impact === 'high' ? '8' : test.impact === 'medium' ? '6' : '4'}| 
+msg=${indicatorList}`,
+      cortex: `dataset = xdr_data
 | filter event_type = ENUM.PROCESS_START
-| filter action_process_image_command_line contains "${test.detectionIndicators[0]}"${test.detectionIndicators.slice(1).map(i => ` or action_process_image_command_line contains "${i}"`).join('')}`;
-        break;
-      default:
-        query = `# Detection for ${test.name}
-# MITRE: ${test.technique}
-# Indicators: ${indicators}
-
-[INSERT PLATFORM QUERY HERE]`;
-    }
+| filter action_process_image_command_line contains "${test.detectionIndicators[0]}"${test.detectionIndicators.slice(1).map(i => ` or action_process_image_command_line contains "${i}"`).join('')}`,
+      fidelis: `entity_type=process AND (${test.detectionIndicators.map(i => `command_line contains "${i}"`).join(' OR ')})`
+    };
 
     setFormData({
       name: `Atomic Test Detection - ${test.name}`,
@@ -3722,7 +3769,8 @@ GROUP BY sourceip, username, Image`;
       status: 'draft',
       platform: selectedPlatform,
       dataSource: test.platforms.includes('windows') ? 'Windows Events' : 'Linux Audit',
-      query: query,
+      query: queries[selectedPlatform],
+      queries: queries,
       tags: ['atomic-red-team', test.technique.toLowerCase(), test.tactic.toLowerCase().replace(' ', '-')],
       mitreTechniques: [test.technique],
       mitreTactics: [test.tactic],
